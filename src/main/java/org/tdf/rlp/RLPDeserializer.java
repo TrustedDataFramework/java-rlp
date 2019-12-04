@@ -53,13 +53,15 @@ public class RLPDeserializer{
         if (clazz == byte[].class) {
             return (T) element.getAsItem().get();
         }
-        if (element.isNull()) return null;
-        if (clazz == BigInteger.class) {
-            return (T) element.getAsItem().getBigInteger();
-        }
+        // String is non-null, since we cannot differ between null empty string and null
         if (clazz == String.class) {
             return (T) element.getAsItem().getString();
         }
+        // big integer is non-null, since we cannot differ between zero and null
+        if (clazz == BigInteger.class) {
+            return (T) element.getAsItem().getBigInteger();
+        }
+        if (element.isNull()) return null;
         if (clazz.isArray()) {
             Class elementType = clazz.getComponentType();
             Object res = Array.newInstance(clazz.getComponentType(), element.getAsList().size());

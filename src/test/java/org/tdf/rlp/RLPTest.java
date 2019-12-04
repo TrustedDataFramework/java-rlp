@@ -1126,4 +1126,14 @@ public class RLPTest {
 
         assert tooBigNestedFired;
     }
+
+    @Test(expected = Exception.class)
+    public void testEncodeFail(){
+        RLPElement.encode(new Foo());
+    }
+
+    static class Foo{
+        public String a;
+        public long b;
+    }
 }
