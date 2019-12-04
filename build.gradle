@@ -1,0 +1,26 @@
+plugins {
+    id 'java'
+}
+
+group 'org.tdf'
+version '1.0.0'
+
+sourceCompatibility = 1.8
+
+repositories {
+    mavenCentral()
+}
+
+ext{
+    lombokVersion = '1.18.10'
+    commonsCodecVersion = '1.13'
+    scastleVersion = '1.58.0.0'
+}
+
+dependencies {
+    testCompile group: 'junit', name: 'junit', version: '4.12'
+    compileOnly "org.projectlombok:lombok:${lombokVersion}"
+    testCompile "commons-codec:commons-codec:${commonsCodecVersion}"
+    testCompile "com.madgag.spongycastle:core:${scastleVersion}" // for rlp encoding
+    testCompile "com.madgag.spongycastle:prov:${scastleVersion}" // for rlp encoding
+}
