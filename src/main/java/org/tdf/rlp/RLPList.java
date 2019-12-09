@@ -9,7 +9,7 @@ import java.util.stream.Collectors;
 import static org.tdf.rlp.RLPConstants.*;
 
 public final class RLPList implements RLPElement, List<RLPElement> {
-    static byte[] EMPTY_ENCODED_LIST = createEmpty().getEncoded();
+    static byte[] EMPTY_ENCODED_LIST = encodeList(new ArrayList<>());
 
     public static RLPList of(RLPElement... elements) {
         return new RLPList(Arrays.asList(elements));

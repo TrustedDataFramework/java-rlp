@@ -98,7 +98,7 @@ public final class RLPItem implements RLPElement {
     }
 
     public boolean isNull() {
-        return data.size() == 0;
+        return this == NULL || data.size() == 0;
     }
 
     public byte getByte() {
