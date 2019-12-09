@@ -12,6 +12,7 @@ import static org.tdf.rlp.RLPConstants.*;
  * immutable rlp item
  */
 public final class RLPItem implements RLPElement {
+    private static byte[] NULL_ENCODED = encodeElement(null);
     private LazyByteArray data;
 
     private Long longNumber;
@@ -143,6 +144,7 @@ public final class RLPItem implements RLPElement {
     }
 
     public byte[] getEncoded() {
+        if (isNull()) return NULL_ENCODED;
         if (encoded == null) encoded = new LazyByteArray(encodeElement(get()));
         return encoded.get();
     }
