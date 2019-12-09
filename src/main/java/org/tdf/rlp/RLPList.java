@@ -9,6 +9,8 @@ import java.util.stream.Collectors;
 import static org.tdf.rlp.RLPConstants.*;
 
 public final class RLPList implements RLPElement, List<RLPElement> {
+    static byte[] EMPTY_ENCODED_LIST = createEmpty().getEncoded();
+
     public static RLPList of(RLPElement... elements) {
         return new RLPList(Arrays.asList(elements));
     }
@@ -27,9 +29,9 @@ public final class RLPList implements RLPElement, List<RLPElement> {
 
     public List<RLPElement> elements = new ArrayList<>();
 
-    private byte[] encoded;
+    private LazyByteArray encoded;
 
-    void setEncoded(byte[] encoded) {
+    void setEncoded(LazyByteArray encoded) {
         this.encoded = encoded;
     }
 
@@ -61,8 +63,10 @@ public final class RLPList implements RLPElement, List<RLPElement> {
 
     @Override
     public byte[] getEncoded() {
-        if(encoded != null) return encoded;
-        return encodeList(stream().map(RLPElement::getEncoded).collect(Collectors.toList()));
+        if(size() == 0) return EMPTY_ENCODED_LIST;
+        if(encoded != null) return encoded.get();
+        encoded = new LazyByteArray(encodeList(stream().map(RLPElement::getEncoded).collect(Collectors.toList())));
+        return encoded.get();
     }
 
     @Override

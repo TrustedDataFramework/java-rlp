@@ -5,29 +5,25 @@ import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 
+import static org.tdf.rlp.LazyByteArray.EMPTY;
 import static org.tdf.rlp.RLPConstants.*;
 
 /**
  * immutable rlp item
  */
 public final class RLPItem implements RLPElement {
-    // cannot be null
-    private final byte[] data;
+    private LazyByteArray data;
 
     private Long longNumber;
 
-    private byte[] encoded;
+    private LazyByteArray encoded;
 
-    void setEncoded(byte[] encoded) {
+    void setEncoded(LazyByteArray encoded) {
         this.encoded = encoded;
     }
 
-    private int offset;
-
-    private int limit;
-
     public byte[] get() {
-        return Arrays.copyOfRange(data, offset, limit);
+        return data.get();
     }
 
     public static RLPItem fromByte(byte b) {
@@ -57,7 +53,7 @@ public final class RLPItem implements RLPElement {
 
     public static RLPItem fromBytes(byte[] data) {
         if (data == null || data.length == 0) return NULL;
-        return new RLPItem(data, 0, data.length);
+        return new RLPItem(new LazyByteArray(data));
     }
 
     public static RLPItem fromBigInteger(BigInteger bigInteger) {
@@ -80,12 +76,10 @@ public final class RLPItem implements RLPElement {
         return bytes;
     }
 
-    public static final RLPItem NULL = new RLPItem(new byte[0], 0, 0);
+    public static final RLPItem NULL = new RLPItem(EMPTY);
 
-    RLPItem(byte[] data, int offset, int limit) {
+    RLPItem(LazyByteArray data) {
         this.data = data;
-        this.offset = offset;
-        this.limit = limit;
     }
 
     @Override
@@ -104,7 +98,7 @@ public final class RLPItem implements RLPElement {
     }
 
     public boolean isNull() {
-        return data.length == 0 || limit == offset;
+        return data.size() == 0;
     }
 
     public byte getByte() {
@@ -149,8 +143,8 @@ public final class RLPItem implements RLPElement {
     }
 
     public byte[] getEncoded() {
-        if (encoded == null) encoded = encodeElement(get());
-        return encoded;
+        if (encoded == null) encoded = new LazyByteArray(encodeElement(get()));
+        return encoded.get();
     }
 
     public static byte[] encodeElement(byte[] srcData) {
