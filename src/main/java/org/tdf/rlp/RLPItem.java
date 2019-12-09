@@ -1,8 +1,5 @@
 package org.tdf.rlp;
 
-import lombok.AccessLevel;
-import lombok.Setter;
-
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;

@@ -4,7 +4,6 @@ package org.tdf.rlp;
 import lombok.NonNull;
 
 import java.math.BigInteger;
-import java.nio.ByteBuffer;
 import java.util.Arrays;
 
 import static org.tdf.rlp.RLPConstants.*;
