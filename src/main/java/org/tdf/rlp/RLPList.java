@@ -1,7 +1,6 @@
 package org.tdf.rlp;
 
 import lombok.NonNull;
-import lombok.experimental.Delegate;
 
 import java.util.*;
 import java.util.function.UnaryOperator;
@@ -10,27 +9,38 @@ import java.util.stream.Collectors;
 import static org.tdf.rlp.RLPConstants.*;
 
 public final class RLPList implements RLPElement, List<RLPElement> {
-    public static RLPList of(RLPElement... elements){
+    public static RLPList of(RLPElement... elements) {
         return new RLPList(Arrays.asList(elements));
     }
 
-    public static RLPList fromElements(Collection<RLPElement> elements){
+    public static RLPList fromElements(Collection<RLPElement> elements) {
         return new RLPList(elements.stream().collect(Collectors.toList()));
     }
 
-    public static RLPList createEmpty(){
+    public static RLPList createEmpty() {
         return new RLPList();
     }
 
-    public static RLPList createEmpty(int cap){
+    public static RLPList createEmpty(int cap) {
         return new RLPList(new ArrayList<>(cap));
     }
 
     public List<RLPElement> elements = new ArrayList<>();
 
-    private RLPList(){}
+    private byte[] encoded;
 
-    RLPList(List<RLPElement> elements){
+    void setEncoded(byte[] encoded) {
+        this.encoded = encoded;
+    }
+
+    private void setDirty() {
+        encoded = null;
+    }
+
+    private RLPList() {
+    }
+
+    RLPList(List<RLPElement> elements) {
         this.elements = elements;
     }
 
@@ -51,6 +61,7 @@ public final class RLPList implements RLPElement, List<RLPElement> {
 
     @Override
     public byte[] getEncoded() {
+        if(encoded != null) return encoded;
         return encodeList(stream().map(RLPElement::getEncoded).collect(Collectors.toList()));
     }
 
@@ -132,12 +143,15 @@ public final class RLPList implements RLPElement, List<RLPElement> {
 
     @Override
     public boolean add(RLPElement rlpElement) {
+        setDirty();
         return elements.add(rlpElement);
     }
 
     @Override
     public boolean remove(Object o) {
-        return elements.remove(o);
+        boolean removed = elements.remove(o);
+        if (removed) setDirty();
+        return removed;
     }
 
     @Override
@@ -147,37 +161,47 @@ public final class RLPList implements RLPElement, List<RLPElement> {
 
     @Override
     public boolean addAll(Collection<? extends RLPElement> c) {
+        if (c.size() > 0) setDirty();
         return elements.addAll(c);
     }
 
     @Override
     public boolean addAll(int index, Collection<? extends RLPElement> c) {
-        return elements.addAll(index, c);
+        boolean success = elements.addAll(index, c);
+        setDirty();
+        return success;
     }
 
     @Override
     public boolean removeAll(Collection<?> c) {
-        return elements.removeAll(c);
+        boolean success = elements.removeAll(c);
+        if (success) setDirty();
+        return success;
     }
 
     @Override
     public boolean retainAll(Collection<?> c) {
-        return elements.retainAll(c);
+        boolean success = elements.retainAll(c);
+        setDirty();
+        return success;
     }
 
     @Override
     public void replaceAll(UnaryOperator<RLPElement> operator) {
         elements.replaceAll(operator);
+        setDirty();
     }
 
     @Override
     public void sort(Comparator<? super RLPElement> c) {
         elements.sort(c);
+        setDirty();
     }
 
     @Override
     public void clear() {
         elements.clear();
+        setDirty();
     }
 
     @Override
@@ -197,17 +221,22 @@ public final class RLPList implements RLPElement, List<RLPElement> {
 
     @Override
     public RLPElement set(int index, RLPElement element) {
-        return elements.set(index, element);
+        RLPElement ret = elements.set(index, element);
+        setDirty();
+        return ret;
     }
 
     @Override
     public void add(int index, RLPElement element) {
         elements.add(index, element);
+        setDirty();
     }
 
     @Override
     public RLPElement remove(int index) {
-        return elements.remove(index);
+        RLPElement ret = elements.remove(index);
+        setDirty();
+        return ret;
     }
 
     @Override
@@ -232,7 +261,7 @@ public final class RLPList implements RLPElement, List<RLPElement> {
 
     @Override
     public List<RLPElement> subList(int fromIndex, int toIndex) {
-        return elements.subList(fromIndex, toIndex);
+        return RLPList.fromElements(elements.subList(fromIndex, toIndex));
     }
 
     @Override

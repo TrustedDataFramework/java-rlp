@@ -1,5 +1,8 @@
 package org.tdf.rlp;
 
+import lombok.AccessLevel;
+import lombok.Setter;
+
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
@@ -17,6 +20,10 @@ public final class RLPItem implements RLPElement {
     private Long longNumber;
 
     private byte[] encoded;
+
+    void setEncoded(byte[] encoded) {
+        this.encoded = encoded;
+    }
 
     private int offset;
 

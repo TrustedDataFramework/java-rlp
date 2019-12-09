@@ -4,6 +4,7 @@ package org.tdf.rlp;
 import lombok.NonNull;
 
 import java.math.BigInteger;
+import java.nio.ByteBuffer;
 import java.util.Arrays;
 
 import static org.tdf.rlp.RLPConstants.*;
@@ -91,6 +92,7 @@ class RLPReader {
     }
 
     private RLPList readList() {
+        int offset = this.offset;
         int prefix = read();
         RLPList list = RLPList.createEmpty();
         RLPReader reader;
@@ -104,6 +106,8 @@ class RLPReader {
             int lenlist = byteArrayToInt(read(lenlen)); // length of encoded bytes
             reader = readAsReader(lenlist);
         }
+        int limit = reader.limit;
+        list.setEncoded(Arrays.copyOfRange(raw, offset, limit));
         while (reader.hasRemaining()) {
             list.add(reader.readElement());
         }
@@ -117,6 +121,7 @@ class RLPReader {
     }
 
     private RLPItem readItem() {
+        int initOffset = this.offset;
         int prefix = read();
         if (prefix < OFFSET_SHORT_ITEM) {
             return RLPItem.fromBytes(new byte[]{(byte) prefix});
@@ -133,7 +138,9 @@ class RLPReader {
         int lengthBits = prefix - OFFSET_LONG_ITEM; // length of length the encoded bytes
         // skip
         int length = byteArrayToInt(read(lengthBits));
+        int stopLimit = this.offset;
         RLPItem item = new RLPItem(raw, offset, offset + length);
+        item.setEncoded(Arrays.copyOfRange(raw, initOffset, stopLimit));
         skip(length);
         return item;
     }

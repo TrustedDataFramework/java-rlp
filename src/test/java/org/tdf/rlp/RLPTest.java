@@ -1134,4 +1134,26 @@ public class RLPTest {
         public String a;
         public long b;
     }
+
+    @Test
+    public void testListCache(){
+        byte[] encoded = RLPList.of(RLPItem.fromInt(1), RLPItem.fromInt(2)).getEncoded();
+        RLPList list = RLPElement.fromEncoded(encoded).getAsList();
+        byte[] encoded2 = list.getEncoded();
+        list.setEncoded(null);
+        byte[] encoded3 = list.getEncoded();
+        assert Arrays.equals(encoded, encoded2);
+        assert Arrays.equals(encoded2, encoded3);
+    }
+
+    @Test
+    public void testItemCache(){
+        byte[] encoded = RLPItem.fromString("hello world").getEncoded();
+        RLPItem item = RLPElement.fromEncoded(encoded).getAsItem();
+        byte[] encoded2 = item.getEncoded();
+        item.setEncoded(null);
+        byte[] encoded3 = item.getEncoded();
+        assertArrayEquals(encoded, encoded2);
+        assertArrayEquals(encoded2, encoded3);
+    }
 }
