@@ -2,6 +2,8 @@ package org.tdf.rlp;
 
 import java.lang.reflect.Array;
 import java.lang.reflect.Field;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
@@ -103,10 +105,8 @@ public class RLPDeserializer{
                 }
                 continue;
             }
-            if (!f.isAnnotationPresent(ElementType.class)) {
-                throw new RuntimeException("field " + f + " require an ElementType annotation");
-            }
-            Class elementType = f.getAnnotation(ElementType.class).value();
+            ParameterizedType parameterizedType = (ParameterizedType)f.getGenericType();
+            Type[] types =  parameterizedType.getActualTypeArguments();
 
 
             try {
@@ -114,7 +114,7 @@ public class RLPDeserializer{
                     f.set(o, null);
                     continue;
                 }
-                f.set(o, deserializeList(el.getAsList(), elementType));
+                f.set(o, deserializeList(el.getAsList(), (Class)types[0]));
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }

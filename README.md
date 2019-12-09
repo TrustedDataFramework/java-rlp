@@ -11,10 +11,8 @@ public class Node{
     // RLP annotation specify the order of field in encoded list
     @RLP(0)
     public String name;
-
-    // list field require an ElementType Annotation to specify its element type
+    
     @RLP(1)
-    @ElementType(Node.class)
     public List<Node> children;
 
     public Node() {

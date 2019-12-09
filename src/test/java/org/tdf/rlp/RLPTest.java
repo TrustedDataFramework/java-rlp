@@ -17,7 +17,6 @@ import static org.tdf.rlp.RLPItem.*;
 public class RLPTest {
     public static class TestSerializer {
         @RLP(0)
-        @ElementType(String.class)
         public List<String> strings;
 
         public TestSerializer() {
@@ -32,7 +31,6 @@ public class RLPTest {
         @RLP(0)
         public String name;
         @RLP(1)
-        @ElementType(Node.class)
         public List<Node> children;
 
         public Node() {
