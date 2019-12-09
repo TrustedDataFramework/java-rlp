@@ -1,12 +1,14 @@
 package org.tdf.rlp;
 
 import org.apache.commons.codec.binary.Hex;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
 import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
+import java.security.SecureRandom;
 import java.util.*;
 
 import static org.junit.Assert.assertArrayEquals;
@@ -396,7 +398,7 @@ public class RLPTest {
     }
 
     @Test
-    public void testEncodeShortString() throws Exception{
+    public void testEncodeShortString() throws Exception {
         String test = "dog";
         String expected = "83646f67";
         byte[] encoderesult = encodeString(test);
@@ -458,7 +460,7 @@ public class RLPTest {
                 RLPElement.fromEncoded(HexBytes.decode(expectedOutput))
                         .getAsList().stream().map(x -> x.getEncoded()).toArray(),
                 new byte[][]{rlpKeysList, rlpValuesList, rlpCode}
-                );
+        );
     }
 
     @Test
@@ -470,7 +472,7 @@ public class RLPTest {
     }
 
     @Test
-    public void testEncodeInt_7f() throws Exception{
+    public void testEncodeInt_7f() throws Exception {
         String result = HexBytes.encode(encodeInt(0x7f));
         String expected = "7f";
         assertEquals(expected, result);
@@ -478,7 +480,7 @@ public class RLPTest {
     }
 
     @Test
-    public void testEncodeInt_80() throws Exception{
+    public void testEncodeInt_80() throws Exception {
         String result = HexBytes.encode(encodeInt(0x80));
         String expected = "8180";
         assertEquals(expected, result);
@@ -1174,5 +1176,30 @@ public class RLPTest {
         byte[] encoded3 = item.getEncoded();
         assertArrayEquals(encoded, encoded2);
         assertArrayEquals(encoded2, encoded3);
+    }
+
+    @Ignore
+    @Test
+//    ethereumJ: encode 320000 bytes in 127 ms
+//    ethereumJ: decode 320000 bytes in 159 ms
+//    our: encode 320000 bytes in 109 ms
+//    our: decode 320000 bytes in 4 ms
+    public void testBomb() {
+        int n = 10000;
+        SecureRandom sr = new SecureRandom();
+        RLPList list = RLPList.createEmpty(n);
+        for (int i = 0; i < n; i++) {
+            byte[] bytes = new byte[10000];
+            list.add(RLPItem.fromBytes(bytes));
+        }
+        long start = System.currentTimeMillis();
+        byte[] encoded = list.getEncoded();
+        long end = System.currentTimeMillis();
+        System.out.println("encode " + (n * 32) + " bytes in " + (end - start) + " ms");
+
+        start = System.currentTimeMillis();
+        RLPElement decoded = RLPElement.fromEncoded(encoded);
+        end = System.currentTimeMillis();
+        System.out.println("decode " + (n * 32) + " bytes in " + (end - start) + " ms");
     }
 }
