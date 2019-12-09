@@ -108,6 +108,9 @@ public class RLPTest {
         assert serializer.strings.get(0).equals("1");
         assert serializer.strings.get(1).equals("2");
         assert serializer.strings.get(2).equals("3");
+        RLPList list = RLPElement.fromEncoded(data).getAsList();
+        list.setEncoded(null);
+        assertArrayEquals(data, list.getEncoded());
     }
 
 
@@ -119,12 +122,13 @@ public class RLPTest {
         assertEquals(expected, HexBytes.encode(encoderesult));
 
         String[] decodedTest = RLPDeserializer.deserialize(encoderesult, String[].class);
-        assert decodedTest[0].equals("cat");
+        assertArrayEquals(decodedTest, test);
 
         test = new String[]{"dog", "god", "cat"};
         expected = "cc83646f6783676f6483636174";
         encoderesult = RLPSerializer.SERIALIZER.serialize(test);
         assertEquals(expected, HexBytes.encode(encoderesult));
+        assertArrayEquals(RLPElement.fromEncoded(encoderesult).getAsList().stream().map(x -> x.getAsItem().getString()).toArray(), test);
     }
 
     @Test
@@ -311,6 +315,10 @@ public class RLPTest {
         String expected = "b840" + byteArr;
 
         assertEquals(expected, HexBytes.encode(encodeElement(byteArray)));
+        assertEquals(expected, HexBytes.encode(RLPItem.fromBytes(byteArray).getEncoded()));
+        assertEquals(expected, HexBytes.encode(
+                RLPElement.fromEncoded(HexBytes.decode(expected)).getEncoded()
+        ));
     }
 
     @Test
@@ -388,11 +396,12 @@ public class RLPTest {
     }
 
     @Test
-    public void testEncodeShortString() {
+    public void testEncodeShortString() throws Exception{
         String test = "dog";
         String expected = "83646f67";
         byte[] encoderesult = encodeString(test);
         assertEquals(expected, HexBytes.encode(encoderesult));
+        assert RLPElement.fromEncoded(HexBytes.decode(expected)).getAsItem().getString().equals(test);
 
         byte[] decodeResult = RLPElement.fromEncoded(encoderesult).getAsItem().get();
         assertEquals(test, new String(decodeResult, StandardCharsets.US_ASCII));
@@ -434,7 +443,7 @@ public class RLPTest {
     }
 
     @Test // found this with a bug - nice to keep
-    public void encodeEdgeShortList() throws Exception{
+    public void encodeEdgeShortList() throws Exception {
 
         String expectedOutput = "f7c0c0b4600160003556601359506301000000600035040f6018590060005660805460016080530160005760003560805760203560003557";
 
@@ -444,6 +453,12 @@ public class RLPTest {
         byte[] output = RLPList.encodeList(Arrays.asList(rlpKeysList, rlpValuesList, rlpCode));
 
         assertEquals(expectedOutput, HexBytes.encode(output));
+        assertArrayEquals(RLPElement.fromEncoded(HexBytes.decode(expectedOutput)).getEncoded(), HexBytes.decode(expectedOutput));
+        assertArrayEquals(
+                RLPElement.fromEncoded(HexBytes.decode(expectedOutput))
+                        .getAsList().stream().map(x -> x.getEncoded()).toArray(),
+                new byte[][]{rlpKeysList, rlpValuesList, rlpCode}
+                );
     }
 
     @Test
@@ -451,29 +466,32 @@ public class RLPTest {
 
         BigInteger integer = new BigInteger("80", 10);
         byte[] encodedData = encodeBigInteger(integer);
-        System.out.println(HexBytes.encode(encodedData));
+        assert RLPElement.fromEncoded(encodedData).getAsItem().getInt() == 80;
     }
 
     @Test
-    public void testEncodeInt_7f() {
+    public void testEncodeInt_7f() throws Exception{
         String result = HexBytes.encode(encodeInt(0x7f));
         String expected = "7f";
         assertEquals(expected, result);
+        assert RLPElement.fromEncoded(HexBytes.decode(expected)).getAsItem().getInt() == 0x7f;
     }
 
     @Test
-    public void testEncodeInt_80() {
+    public void testEncodeInt_80() throws Exception{
         String result = HexBytes.encode(encodeInt(0x80));
         String expected = "8180";
         assertEquals(expected, result);
+        assert RLPElement.fromEncoded(HexBytes.decode(expected)).getAsItem().getInt() == 0x80;
     }
 
 
     @Test
-    public void testEncode_ED() {
+    public void testEncode_ED() throws Exception {
         String result = HexBytes.encode(encodeInt(0xED));
         String expected = "81ed";
         assertEquals(expected, result);
+        assert RLPElement.fromEncoded(HexBytes.decode(result)).getAsItem().getInt() == 0xED;
     }
 
     // encode a binary tree
@@ -492,6 +510,7 @@ public class RLPTest {
         assert root2.children.get(0).children.get(1).name.equals("5");
         assert root2.children.get(1).children.get(0).name.equals("6");
         assert root2.children.get(1).children.get(1).name.equals("7");
+        assertArrayEquals(RLPElement.fromEncoded(encoded).getEncoded(), encoded);
     }
 
     public static class MapEncoderDecoder implements RLPEncoder<Map<String, String>>, RLPDecoder<Map<String, String>> {
@@ -546,7 +565,7 @@ public class RLPTest {
     }
 
     @Test
-    public void rlpEncodedLength() throws Exception{
+    public void rlpEncodedLength() throws Exception {
         // Sorry for my length: real world data, and it hurts!
         String rlpBombStr = "f906c83d29b5263f75d4059883dfaee37593f076fe42c254e0a9f247f62eafa00773636a33d5aa4bea5d520361874a8d34091c456a5fdf14fefd536eee06eb68bddba42ae34b81863a1d8a0fdb1167f6e104080e10ded0cd4f0b9f34179ab734135b58671a4a69dd649b10984dc6ad2ce1caebfc116526fe0903396ab89898a56e8384d4aa5061c77281a5d50640a4b6dd6de6b7f7574d0cfef68b67d3b66c0349bc5ea18cccd3904eb8425258e282ddf8b13bde46c99d219dc145056232510665b95760a735aa4166f58e8deefa02bc5923f420940b3b781cd3a8c06653a5f692de0f0080aa8810b44de96b0237f25162a31b96fb3cb0f1e2976ff3c2d69c565b39befb917560aa5d43f3a857ffe4cae451a3a175ccb92f25c9a89788ee6cf9275fd99eaa6fc29e9216ed5b931409e9cd1e8deb0423be72ce447ab8aa4ff39caee8f3a0cfecb62da5423954f2fa6fd14074c1e9dbce3b77ceaf96a0b31ae6c87d40523550158464fcaab748681f775b2ab1e09fff6db8739d4721824654ae3989ae7c35eb1a42021c43c77a040dfef6d91954f5b005c84cd60d7ab535d3f06c10c86bf6390111839a5ffc985a38941d840db64806d4181d42c572b54d90ea7b2fbad0c86550f48cca0d9a3aacfd436e1663836615c0a8e6a5ed1be1f75c7f98b43fd154fbffd9b2316d51691523eeb3fa52746499deddf65a8ccc7d0313370651004e719071947dab6b64a99ccebeabf66418b6265ff5d7ed7ecf6fac620ede69e48946b26205c7add1117952ea8199d4e42d592ed112c1341f4c1d9aeee0a03ac655ad02148cab6613c11c255c99c9eb1ed8609397f4e93a523a31d545055c4fe85baccf2a2903d6b64d2e4b6fb5cbc9029e9eee4a33e3ece51e42602c64a66ee1c6ce9d47911daf7b57c9272b6f96029c797081c1ca3f59f67ed1a0a4a612f86222ab2da812fd09cdcebe3fa2f33c07b9fb8435937091370ecdb028dd9446275eb063ea74149da4b72149187c786ee6839946f85e3d3d41786c2f5aec041f77e278320dc4e0f0618fa0c5e7352dd7a598581531e804e62b3be475d8a7e2cf3a5b05be36f33a9beef75a18a5d11d615e04b595ca649fadd30b8d52392bac5cdce0f2a524576ac155ffa05ba73d255a066d8feff1d105f29e0925" +
                 "3d6b2f3fc02fcb4d0c604b8dadb2ee95d36b77320071fe2d6105c9bc7a940dcfc2b5e8571a8678f8e81c473698411ae217051d5dce243a10bd1494539f2bdbb4898a5b8655f9ae9a99b622cec42bdf87db58673461524c27754503ace9d0a90684ec165da55247cab70af1dc928cb134f2d4d1a876a7cf318c77feb14148419526ca63c152cd4e43f9f7138d6fe44c3c104c15e6d904abe262cea244e59bdde57bdbb2b04fc2baa65b01a3af31e0e8e65b9991a43faadcee218412c834dd2415de3cb4fbf0e549a97d0172a595b367e80a1dae0a233780788784f214d2fb15d79f71ce464fb5e4ad664114802069e6fe26e8f1440e30815dbf5f4b20676b95ec5bb23df3074ffa4bc53f375a4622acb4756c102cba940bcdba53cd944aa8dc18a12237ac2c8cbae62a6f7fb7cec617b7f65280ff9ef26c9e146ed2b7d22f28883e02a05378cc031f722185e423fc66ad150771fb29a1867a978190aa6bb556e6c15009b644a06622e6606a0cf00e9a2fe25a83f99e802eca63e05aa46a5c7f090d63a25b6344ec70c798e142573bfa56980eba687bd52423e2c04ed4a9a5b6b7419c5abcc178348059ec6ba9bb47a22285f67115193c3c98288517e4ce30e32d971c390169294f3bc22f9d5b534022875c77620b0fdd85fd65dead59537ebfe5b09d4442c45f75d9188f24eef00af41faa7072a984f988d47af751d2c933aea51855572cfdf197eac950759cc36d9be3d390c357d778d770f03801153442d80a98f8ed151c6f4de26f746b714ce829b02aab07fbeae1890f91a1d7e79ea253027ad443b5f0272782ffccfabda5e09c9ee4d238dd00553ebda0151af0811c009e97f1a2aef3fce30bfb66f8c8996cf10eedcf7735bb7686149a5459b07086db3e950828a55b84e371cb9e9bd2b17111a6fcc9612b77859c52f630983c483822832375c3a82aa918c7347a443a86fb2b27dd6daae0d1c35e759670f8108225187d5376633881179b0860d8b08de2019db85cdd39420748fc31695dd66f90e1c6d3b176b5f8b6ea35900e7d56ebf6485c241f2b7ebe4a0f253556d647f1a4e3a8f4e6aa21131253821df415694467d8ac6d20282fe93be23c6177e68d3f7860a75a238f741d5d589635190e12a4821eb8b4ca87e3e04ec33e760abaa5" +
@@ -1126,17 +1145,17 @@ public class RLPTest {
     }
 
     @Test(expected = Exception.class)
-    public void testEncodeFail(){
+    public void testEncodeFail() {
         RLPElement.encode(new Foo());
     }
 
-    static class Foo{
+    static class Foo {
         public String a;
         public long b;
     }
 
     @Test
-    public void testListCache(){
+    public void testListCache() {
         byte[] encoded = RLPList.of(RLPItem.fromInt(1), RLPItem.fromInt(2)).getEncoded();
         RLPList list = RLPElement.fromEncoded(encoded).getAsList();
         byte[] encoded2 = list.getEncoded();
@@ -1147,7 +1166,7 @@ public class RLPTest {
     }
 
     @Test
-    public void testItemCache(){
+    public void testItemCache() {
         byte[] encoded = RLPItem.fromString("hello world").getEncoded();
         RLPItem item = RLPElement.fromEncoded(encoded).getAsItem();
         byte[] encoded2 = item.getEncoded();

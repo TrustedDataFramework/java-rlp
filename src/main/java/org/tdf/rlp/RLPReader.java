@@ -57,7 +57,9 @@ class RLPReader {
         }
         if (prefix < OFFSET_SHORT_LIST) {
             // skip
-            return byteArrayToInt(Arrays.copyOfRange(raw, 1, 1 + prefix - OFFSET_SHORT_LIST)) + 1 + prefix - OFFSET_LONG_ITEM;
+            return byteArrayToInt(
+                    Arrays.copyOfRange(raw, 1, 1 + prefix - OFFSET_LONG_ITEM)
+            ) + 1 + prefix - OFFSET_LONG_ITEM;
         }
         if (prefix <= OFFSET_LONG_LIST) {
             return prefix - OFFSET_SHORT_LIST + 1;
@@ -106,10 +108,10 @@ class RLPReader {
             reader = readAsReader(lenlist);
         }
         int limit = reader.limit;
-        list.setEncoded(new LazyByteArray(raw, offset, limit));
         while (reader.hasRemaining()) {
             list.add(reader.readElement());
         }
+        list.setEncoded(new LazyByteArray(raw, offset, limit));
         return list;
     }
 
@@ -137,7 +139,7 @@ class RLPReader {
         int lengthBits = prefix - OFFSET_LONG_ITEM; // length of length the encoded bytes
         // skip
         int length = byteArrayToInt(read(lengthBits));
-        int stopLimit = this.offset;
+        int stopLimit = this.limit;
         RLPItem item = new RLPItem(new LazyByteArray(raw, offset, offset + length));
         item.setEncoded(new LazyByteArray(raw, initOffset, stopLimit));
         skip(length);
