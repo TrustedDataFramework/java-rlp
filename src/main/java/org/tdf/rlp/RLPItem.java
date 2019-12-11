@@ -13,7 +13,7 @@ import static org.tdf.rlp.RLPConstants.*;
  */
 public final class RLPItem implements RLPElement {
     private static byte[] NULL_ENCODED = encodeElement(null);
-    public static final RLPItem ONE = fromLong(1);
+    public static final RLPItem ONE = new RLPItem(new LazyByteArray(new byte[]{1}));
 
     private LazyByteArray data;
 
@@ -46,8 +46,8 @@ public final class RLPItem implements RLPElement {
     }
 
     public static RLPItem fromLong(long l) {
-        if(l == 0) return NULL;
-        if(l == 1) return ONE;
+        if (l == 0) return NULL;
+        if (l == 1) return ONE;
         int leadingZeroBytes = Long.numberOfLeadingZeros(l) / Byte.SIZE;
 
         return fromBytes(concat(
@@ -211,7 +211,7 @@ public final class RLPItem implements RLPElement {
         return fromBoolean(b).getEncoded();
     }
 
-    public static boolean decodeBoolean(byte[] encoded){
+    public static boolean decodeBoolean(byte[] encoded) {
         return RLPElement.fromEncoded(encoded).getAsItem().getBoolean();
     }
 

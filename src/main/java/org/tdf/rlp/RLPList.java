@@ -65,7 +65,12 @@ public final class RLPList implements RLPElement, List<RLPElement> {
     public byte[] getEncoded() {
         if(size() == 0) return EMPTY_ENCODED_LIST;
         if(encoded != null) return encoded.get();
-        encoded = new LazyByteArray(encodeList(stream().map(RLPElement::getEncoded).collect(Collectors.toList())));
+        encoded = new LazyByteArray(
+                 encodeList(
+                         stream().map(RLPElement::getEncoded)
+                                 .collect(Collectors.toList())
+                 )
+        );
         return encoded.get();
     }
 
