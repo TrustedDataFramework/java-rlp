@@ -35,6 +35,10 @@ public final class RLPItem implements RLPElement {
         return fromLong(Short.toUnsignedLong(s));
     }
 
+    public static RLPItem fromBoolean(boolean b) {
+        return fromLong(b ? 1 : 0);
+    }
+
     public static RLPItem fromInt(int i) {
         return fromLong(Integer.toUnsignedLong(i));
     }
@@ -141,6 +145,11 @@ public final class RLPItem implements RLPElement {
 
     public String getString() {
         return new String(get(), StandardCharsets.UTF_8);
+    }
+
+    public boolean getBoolean() {
+        if (getLong() > 1) throw new RuntimeException("not a boolean");
+        return getLong() == 1;
     }
 
     public byte[] getEncoded() {

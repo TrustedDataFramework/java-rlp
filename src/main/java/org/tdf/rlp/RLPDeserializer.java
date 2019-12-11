@@ -14,6 +14,10 @@ public class RLPDeserializer {
         return deserialize(element, clazz);
     }
 
+    public static <T> List<T> deserializeList(RLPElement element, Class<T> elementType){
+        return deserializeList(element.getAsList(), 1, elementType);
+    }
+
     public static <T> List<T> deserializeList(byte[] data, Class<T> elementType) {
         RLPElement element = RLPElement.fromEncoded(data);
         return deserializeList(element.getAsList(), 1, elementType);
@@ -43,6 +47,7 @@ public class RLPDeserializer {
         if (clazz == RLPElement.class) return (T) element;
         if (clazz == RLPList.class) return (T) element.getAsList();
         if (clazz == RLPItem.class) return (T) element.getAsItem();
+        if(clazz == boolean.class || clazz == Boolean.class) return (T) Boolean.valueOf(element.getAsItem().getBoolean());
         RLPDecoder decoder = RLPUtils.getAnnotatedRLPDecoder(clazz);
         if (decoder != null) return (T) decoder.decode(element);
         // non null terminals

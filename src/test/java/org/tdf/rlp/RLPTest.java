@@ -10,6 +10,8 @@ import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
 import java.security.SecureRandom;
 import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
@@ -1269,5 +1271,30 @@ public class RLPTest {
         assert strs[0][1].equals("bbb");
         assert strs[1][0].equals("aa");
         assert strs[1][1].equals("bbb");
+    }
+
+    @Test
+    public void testBoolean(){
+        assert !RLPDeserializer.deserialize(NULL, Boolean.class);
+        assert RLPDeserializer.deserialize(RLPItem.fromBoolean(true), Boolean.class);
+        List<RLPItem> elements = Stream.of(1, 1, 1).map(RLPItem::fromInt).collect(Collectors.toList());
+        RLPList list = RLPList.fromElements(elements);
+        assert RLPDeserializer.deserializeList(
+                list, Boolean.class
+        ).stream().allMatch(x -> x);
+    }
+
+    @Test(expected = RuntimeException.class)
+    public void testBooleanFailed(){
+        RLPDeserializer.deserialize(RLPItem.fromInt(2), Boolean.class);
+    }
+
+    @Test(expected = RuntimeException.class)
+    public void testBooleanFailed2(){
+        List<RLPItem> elements = Stream.of(1, 2, 3).map(RLPItem::fromInt).collect(Collectors.toList());
+        RLPList list = RLPList.fromElements(elements);
+        RLPDeserializer.deserializeList(
+                list, Boolean.class
+        );
     }
 }

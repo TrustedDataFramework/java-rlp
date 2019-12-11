@@ -15,7 +15,7 @@ public final class RLPList implements RLPElement, List<RLPElement> {
         return new RLPList(Arrays.asList(elements));
     }
 
-    public static RLPList fromElements(Collection<RLPElement> elements) {
+    public static RLPList fromElements(Collection<? extends RLPElement> elements) {
         return new RLPList(elements.stream().collect(Collectors.toList()));
     }
 
