@@ -204,6 +204,14 @@ public final class RLPItem implements RLPElement {
         return data;
     }
 
+    public static byte[] encodeBoolean(boolean b) {
+        return fromBoolean(b).getEncoded();
+    }
+
+    public static boolean decodeBoolean(byte[] encoded){
+        return RLPElement.fromEncoded(encoded).getAsItem().getBoolean();
+    }
+
     public static byte[] encodeByte(byte b) {
         return fromByte(b).getEncoded();
     }
