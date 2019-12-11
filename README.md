@@ -112,6 +112,33 @@ public class Main{
 }
 ```
 
+- supports List and POJO only for rlp is ordered while set is no ordered, generic list could be nested to any deepth
+
+```java
+public class Nested{
+    @RLP
+    private List<List<List<String>>> nested;
+
+    public Nested() {
+    }
+}
+```    
+```java
+public class Main{
+    public static void main(String[] args){
+        Nested nested = new Nested();
+        nested.nested = new ArrayList<>();
+        nested.nested.add(new ArrayList<>());
+        nested.nested.get(0).add(new ArrayList<>());
+        nested.nested.get(0).get(0).addAll(Arrays.asList("aaa", "bbb"));
+        byte[] encoded = RLPElement.encode(nested).getEncoded();
+        nested = RLPDeserializer.deserialize(encoded, Nested.class);
+        assertTrue(nested.nested.get(0).get(0).get(0).equals("aaa"));
+        assertTrue(nested.nested.get(0).get(0).get(1).equals("bbb"));
+    }
+}
+```
+
 Benchmark compare to EthereumJ:
 
 decoding list 10000000 times: 

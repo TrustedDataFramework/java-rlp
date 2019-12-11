@@ -30,6 +30,15 @@ public class Node{
         children.addAll(nodes);
     }
 
+    private static class Nested{
+        @RLP
+        private List<List<List<String>>> nested;
+
+        public Nested() {
+        }
+    }
+
+
     public static void main(String[] args){
         Node root = new Node("1");
         root.addChildren(Arrays.asList(new Node("2"), new Node("3")));
@@ -47,6 +56,16 @@ public class Node{
         assertTrue(root2.children.get(0).children.get(1).name.equals("5"));
         assertTrue(root2.children.get(1).children.get(0).name.equals("6"));
         assertTrue(root2.children.get(1).children.get(1).name.equals("7"));
+
+        Nested nested = new Nested();
+        nested.nested = new ArrayList<>();
+        nested.nested.add(new ArrayList<>());
+        nested.nested.get(0).add(new ArrayList<>());
+        nested.nested.get(0).get(0).addAll(Arrays.asList("aaa", "bbb"));
+        encoded = RLPElement.encode(nested).getEncoded();
+        nested = RLPDeserializer.deserialize(encoded, Nested.class);
+        assertTrue(nested.nested.get(0).get(0).get(0).equals("aaa"));
+        assertTrue(nested.nested.get(0).get(0).get(1).equals("bbb"));
     }
 
     public static void assertTrue(boolean b){
