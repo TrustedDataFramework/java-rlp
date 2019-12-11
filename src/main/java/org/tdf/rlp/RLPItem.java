@@ -130,7 +130,6 @@ public final class RLPItem implements RLPElement {
             longNumber = 0L;
             return longNumber;
         }
-        ;
         if (data.length > Long.BYTES) throw new RuntimeException("not a number");
         longNumber = ByteBuffer.wrap(concat(new byte[Long.BYTES - data.length], data)).getLong();
         return longNumber;
