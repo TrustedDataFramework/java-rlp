@@ -1202,4 +1202,60 @@ public class RLPTest {
         end = System.currentTimeMillis();
         System.out.println("decode " + (n * 32) + " bytes in " + (end - start) + " ms");
     }
+
+    private static class Nested{
+        @RLP
+        private List<List<List<String>>> nested;
+
+        private String hello;
+
+        public Nested() {
+        }
+    }
+
+    @Test
+    public void testNested() throws Exception{
+        RLPUtils.Resolved resolved = RLPUtils.resolveFieldType(Nested.class.getDeclaredField("nested"));
+        assert resolved.level == 3;
+        assert resolved.type == String.class;
+        resolved = RLPUtils.resolveFieldType(Nested.class.getDeclaredField("hello"));
+        assert resolved.level == 0;
+        assert resolved.type == String.class;
+        resolved = RLPUtils.resolveFieldType(NoNested.class.getDeclaredField("nested"));
+        assert resolved.level == 1;
+        assert resolved.type == String.class;
+    }
+
+    private static class NoNested{
+        @RLP
+        private List<String> nested;
+
+        public NoNested() {
+        }
+    }
+
+    @Test
+    public void testDecode2(){
+        NoNested nested = new NoNested();
+        nested.nested = new ArrayList<>();
+
+        nested.nested.addAll(Arrays.asList("aaa", "bbb"));
+        byte[] encoded = RLPSerializer.SERIALIZER.serialize(nested);
+        NoNested noNested = RLPDeserializer.deserialize(encoded, NoNested.class);
+        assert noNested.nested.get(0).equals("aaa");
+        assert noNested.nested.get(1).equals("bbb");
+    }
+
+    @Test
+    public void testDecode3(){
+        Nested nested = new Nested();
+        nested.nested = new ArrayList<>();
+        nested.nested.add(new ArrayList<>());
+        nested.nested.get(0).add(new ArrayList<>());
+        nested.nested.get(0).get(0).addAll(Arrays.asList("aaa", "bbb"));
+        byte[] encoded = RLPSerializer.SERIALIZER.serialize(nested);
+        nested = RLPDeserializer.deserialize(encoded, Nested.class);
+        assert nested.nested.get(0).get(0).get(0).equals("aaa");
+        assert nested.nested.get(0).get(0).get(1).equals("bbb");
+    }
 }

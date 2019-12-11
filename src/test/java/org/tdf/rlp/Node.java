@@ -10,9 +10,7 @@ public class Node{
     @RLP(0)
     public String name;
 
-    // list field require an ElementType Annotation to specify its element type
     @RLP(1)
-    @ElementType(Node.class)
     public List<Node> children;
 
     public Node() {

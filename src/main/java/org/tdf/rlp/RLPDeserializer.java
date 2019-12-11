@@ -2,14 +2,12 @@ package org.tdf.rlp;
 
 import java.lang.reflect.Array;
 import java.lang.reflect.Field;
-import java.lang.reflect.ParameterizedType;
-import java.lang.reflect.Type;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class RLPDeserializer{
+public class RLPDeserializer {
 
     public static <T> T deserialize(byte[] data, Class<T> clazz) {
         RLPElement element = RLPElement.fromEncoded(data);
@@ -18,15 +16,23 @@ public class RLPDeserializer{
 
     public static <T> List<T> deserializeList(byte[] data, Class<T> elementType) {
         RLPElement element = RLPElement.fromEncoded(data);
-        return deserializeList(element.getAsList(), elementType);
+        return deserializeList(element.getAsList(), 1, elementType);
     }
 
-    private static <T> List<T> deserializeList(RLPList list, Class<T> elementType) {
-        if (elementType == RLPElement.class) return (List<T>) list;
-        if (elementType == RLPItem.class) {
-            return (List<T>) list.stream().map(x -> x.getAsItem()).collect(Collectors.toList());
+    private static List deserializeList(RLPList list, int level, Class<?> elementType) {
+        if (level == 0) throw new RuntimeException("level should be positive");
+        if (level > 1) {
+            List res = new ArrayList(list.size());
+            for (int i = 0; i < list.size(); i++) {
+                res.add(deserializeList(list.get(i).getAsList(), level - 1, elementType));
+            }
+            return res;
         }
-        List<T> res = new ArrayList<>(list.size());
+        if (elementType == RLPElement.class) return list;
+        if (elementType == RLPItem.class) {
+            return list.stream().map(x -> x.getAsItem()).collect(Collectors.toList());
+        }
+        List res = new ArrayList<>(list.size());
         for (int i = 0; i < list.size(); i++) {
             res.add(deserialize(list.get(i), elementType));
         }
@@ -74,7 +80,7 @@ public class RLPDeserializer{
         }
         // cannot determine generic type at runtime
         if (clazz == List.class) {
-            return (T) deserializeList(element.getAsList(), RLPElement.class);
+            return (T) deserializeList(element.getAsList(), 1, RLPElement.class);
         }
         Object o;
         try {
@@ -97,6 +103,7 @@ public class RLPDeserializer{
                 }
                 continue;
             }
+
             if (!f.getType().equals(List.class)) {
                 try {
                     f.set(o, deserialize(el, f.getType()));
@@ -105,16 +112,13 @@ public class RLPDeserializer{
                 }
                 continue;
             }
-            ParameterizedType parameterizedType = (ParameterizedType)f.getGenericType();
-            Type[] types =  parameterizedType.getActualTypeArguments();
-
 
             try {
                 if (el.isNull()) {
-                    f.set(o, null);
                     continue;
                 }
-                f.set(o, deserializeList(el.getAsList(), (Class)types[0]));
+                RLPUtils.Resolved resolved = RLPUtils.resolveFieldType(f);
+                f.set(o, deserializeList(el.getAsList(), resolved.level, resolved.type));
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
