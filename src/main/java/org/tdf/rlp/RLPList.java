@@ -264,7 +264,7 @@ public final class RLPList implements RLPElement, List<RLPElement> {
     }
 
     @Override
-    public List<RLPElement> subList(int fromIndex, int toIndex) {
+    public RLPList subList(int fromIndex, int toIndex) {
         return RLPList.fromElements(elements.subList(fromIndex, toIndex));
     }
 
