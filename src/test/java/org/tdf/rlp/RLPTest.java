@@ -1258,4 +1258,16 @@ public class RLPTest {
         assert nested.nested.get(0).get(0).get(0).equals("aaa");
         assert nested.nested.get(0).get(0).get(1).equals("bbb");
     }
+
+    @Test
+    public void testNestedString(){
+        RLPList li1 = RLPList.of(RLPItem.fromString("aa"), RLPItem.fromString("bbb"));
+        RLPList li2 = RLPList.of(RLPItem.fromString("aa"), RLPItem.fromString("bbb"));
+        byte[] encoded = RLPList.of(li1, li2).getEncoded();
+        String[][] strs = RLPDeserializer.deserialize(encoded, String[][].class);
+        assert strs[0][0].equals("aa");
+        assert strs[0][1].equals("bbb");
+        assert strs[1][0].equals("aa");
+        assert strs[1][1].equals("bbb");
+    }
 }
