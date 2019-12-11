@@ -126,10 +126,10 @@ public final class RLPItem implements RLPElement {
     }
 
     public long getLong() {
+        if (longNumber != null) return longNumber;
         // numbers are ont starts with zero byte
         byte[] data = get();
         if (data.length > 0 && data[0] == 0) throw new RuntimeException("not a number");
-        if (longNumber != null) return longNumber;
         if (isNull()) {
             longNumber = 0L;
             return longNumber;
