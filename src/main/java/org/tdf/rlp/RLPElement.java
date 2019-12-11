@@ -7,6 +7,9 @@ import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static org.tdf.rlp.RLPItem.NULL;
+import static org.tdf.rlp.RLPItem.ONE;
+
 /**
  * The RLP encoding function takes in an item. An item is defined as follows
  * <p>
@@ -33,9 +36,9 @@ public interface RLPElement {
 
     // encode any object as a rlp element
     static RLPElement encode(Object t) {
-        if (t == null) return RLPItem.NULL;
+        if (t == null) return NULL;
         if(t instanceof Boolean || t.getClass() == boolean.class){
-            return encode(((Boolean) t) ? 1 : 0);
+            return ((Boolean) t) ? ONE : NULL;
         }
         if (t instanceof RLPElement) return (RLPElement) t;
         RLPEncoder encoder = RLPUtils.getAnnotatedRLPEncoder(t.getClass());
