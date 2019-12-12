@@ -9,7 +9,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
-class RLPUtils {
+final class RLPUtils {
     static RLPEncoder getAnnotatedRLPEncoder(AnnotatedElement element) {
         if (!element.isAnnotationPresent(RLPEncoding.class)) {
             return null;

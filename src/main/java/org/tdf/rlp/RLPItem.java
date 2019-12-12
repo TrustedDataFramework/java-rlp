@@ -25,7 +25,7 @@ public final class RLPItem implements RLPElement {
         this.encoded = encoded;
     }
 
-    public byte[] get() {
+    public byte[] asBytes() {
         return data.get();
     }
 
@@ -92,17 +92,17 @@ public final class RLPItem implements RLPElement {
     }
 
     @Override
-    public boolean isList() {
+    public boolean isRLPList() {
         return false;
     }
 
     @Override
-    public RLPList getAsList() {
+    public RLPList asRLPList() {
         throw new RuntimeException("not a rlp list");
     }
 
     @Override
-    public RLPItem getAsItem() {
+    public RLPItem asRLPItem() {
         return this;
     }
 
@@ -110,25 +110,25 @@ public final class RLPItem implements RLPElement {
         return this == NULL || data.size() == 0;
     }
 
-    public byte getByte() {
-        if (Long.compareUnsigned(getLong(), 0xffL) > 0) throw new RuntimeException("invalid byte, overflow");
-        return (byte) getLong();
+    public byte asByte() {
+        if (Long.compareUnsigned(asLong(), 0xffL) > 0) throw new RuntimeException("invalid byte, overflow");
+        return (byte) asLong();
     }
 
-    public short getShort() {
-        if (Long.compareUnsigned(getLong(), 0xffff) > 0) throw new RuntimeException("invalid short, overflow");
-        return (short) getLong();
+    public short asShort() {
+        if (Long.compareUnsigned(asLong(), 0xffff) > 0) throw new RuntimeException("invalid short, overflow");
+        return (short) asLong();
     }
 
-    public int getInt() {
-        if (Long.compareUnsigned(getLong(), 0xffffffff) > 0) throw new RuntimeException("invalid int, overflow");
-        return (int) getLong();
+    public int asInt() {
+        if (Long.compareUnsigned(asLong(), 0xffffffff) > 0) throw new RuntimeException("invalid int, overflow");
+        return (int) asLong();
     }
 
-    public long getLong() {
+    public long asLong() {
         if (longNumber != null) return longNumber;
         // numbers are ont starts with zero byte
-        byte[] data = get();
+        byte[] data = asBytes();
         if (data.length > 0 && data[0] == 0) throw new RuntimeException("not a number");
         if (isNull()) {
             longNumber = 0L;
@@ -139,25 +139,25 @@ public final class RLPItem implements RLPElement {
         return longNumber;
     }
 
-    public BigInteger getBigInteger() {
-        byte[] data = get();
+    public BigInteger asBigInteger() {
+        byte[] data = asBytes();
         if (data[0] == 0) throw new RuntimeException("not a number");
         if (isNull()) return BigInteger.ZERO;
         return new BigInteger(1, data);
     }
 
-    public String getString() {
-        return new String(get(), StandardCharsets.UTF_8);
+    public String asString() {
+        return new String(asBytes(), StandardCharsets.UTF_8);
     }
 
-    public boolean getBoolean() {
-        if (getLong() > 1) throw new RuntimeException("not a boolean");
-        return getLong() == 1;
+    public boolean asBoolean() {
+        if (asLong() > 1) throw new RuntimeException("not a boolean");
+        return asLong() == 1;
     }
 
     public byte[] getEncoded() {
         if (isNull()) return NULL_ENCODED;
-        if (encoded == null) encoded = new LazyByteArray(encodeElement(get()));
+        if (encoded == null) encoded = new LazyByteArray(encodeElement(asBytes()));
         return encoded.get();
     }
 
@@ -207,50 +207,6 @@ public final class RLPItem implements RLPElement {
         return data;
     }
 
-    public static byte[] encodeBoolean(boolean b) {
-        return fromBoolean(b).getEncoded();
-    }
-
-    public static boolean decodeBoolean(byte[] encoded) {
-        return RLPElement.fromEncoded(encoded).getAsItem().getBoolean();
-    }
-
-    public static byte[] encodeByte(byte b) {
-        return fromByte(b).getEncoded();
-    }
-
-    public static byte[] encodeShort(short s) {
-        return fromShort(s).getEncoded();
-    }
-
-    public static byte[] encodeInt(int n) {
-        return fromInt(n).getEncoded();
-    }
-
-    public static byte[] encodeBigInteger(BigInteger bigInteger) {
-        return fromBigInteger(bigInteger).getEncoded();
-    }
-
-    public static byte[] encodeString(String s) {
-        return fromString(s).getEncoded();
-    }
-
-    public static int decodeInt(byte[] encoded) {
-        return RLPElement.fromEncoded(encoded).getAsItem().getInt();
-    }
-
-    public static short decodeShort(byte[] encoded) {
-        return RLPElement.fromEncoded(encoded).getAsItem().getShort();
-    }
-
-    public static long decodeLong(byte[] encoded) {
-        return RLPElement.fromEncoded(encoded).getAsItem().getLong();
-    }
-
-    public static String decodeString(byte[] encoded) {
-        return RLPElement.fromEncoded(encoded).getAsItem().getString();
-    }
-
     /**
      * Returns the values from each provided array combined into a single array. For example, {@code
      * concat(new byte[] {a, b}, new byte[] {}, new byte[] {c}} returns the array {@code {a, b, c}}.
@@ -270,5 +226,10 @@ public final class RLPItem implements RLPElement {
             pos += array.length;
         }
         return result;
+    }
+
+    @Override
+    public boolean isRLPItem() {
+        return true;
     }
 }

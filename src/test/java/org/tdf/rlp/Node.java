@@ -47,9 +47,9 @@ public class Node{
         root.children.get(1).addChildren(Arrays.asList(new Node("6"), new Node("7")));
 
         // encode to byte array
-        byte[] encoded = RLPElement.encode(root).getEncoded();
+        byte[] encoded = RLPElement.encodeAsRLPElement(root).getEncoded();
         // encode to rlp element
-        RLPElement el = RLPElement.encode(root);
+        RLPElement el = RLPElement.encodeAsRLPElement(root);
         // decode from byte array
         Node root2 = RLPDeserializer.deserialize(encoded, Node.class);
         assertTrue(root2.children.get(0).children.get(0).name.equals("4"));
@@ -62,7 +62,7 @@ public class Node{
         nested.nested.add(new ArrayList<>());
         nested.nested.get(0).add(new ArrayList<>());
         nested.nested.get(0).get(0).addAll(Arrays.asList("aaa", "bbb"));
-        encoded = RLPElement.encode(nested).getEncoded();
+        encoded = RLPElement.encodeAsRLPElement(nested).getEncoded();
         nested = RLPDeserializer.deserialize(encoded, Nested.class);
         assertTrue(nested.nested.get(0).get(0).get(0).equals("aaa"));
         assertTrue(nested.nested.get(0).get(0).get(1).equals("bbb"));

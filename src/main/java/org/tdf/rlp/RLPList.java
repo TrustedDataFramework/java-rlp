@@ -2,6 +2,7 @@ package org.tdf.rlp;
 
 import lombok.NonNull;
 
+import java.math.BigInteger;
 import java.util.*;
 import java.util.function.UnaryOperator;
 import java.util.stream.Collectors;
@@ -47,29 +48,29 @@ public final class RLPList implements RLPElement, List<RLPElement> {
     }
 
     @Override
-    public boolean isList() {
+    public boolean isRLPList() {
         return true;
     }
 
     @Override
-    public RLPList getAsList() {
+    public RLPList asRLPList() {
         return this;
     }
 
     @Override
-    public RLPItem getAsItem() {
+    public RLPItem asRLPItem() {
         throw new RuntimeException("not a rlp item");
     }
 
     @Override
     public byte[] getEncoded() {
-        if(size() == 0) return EMPTY_ENCODED_LIST;
-        if(encoded != null) return encoded.get();
+        if (size() == 0) return EMPTY_ENCODED_LIST;
+        if (encoded != null) return encoded.get();
         encoded = new LazyByteArray(
-                 encodeList(
-                         stream().map(RLPElement::getEncoded)
-                                 .collect(Collectors.toList())
-                 )
+                encodeList(
+                        stream().map(RLPElement::getEncoded)
+                                .collect(Collectors.toList())
+                )
         );
         return encoded.get();
     }
@@ -276,5 +277,50 @@ public final class RLPList implements RLPElement, List<RLPElement> {
     @Override
     public Spliterator<RLPElement> spliterator() {
         return elements.spliterator();
+    }
+
+    @Override
+    public boolean isRLPItem() {
+        return false;
+    }
+
+    @Override
+    public byte[] asBytes() {
+        throw new RuntimeException("not a rlp item");
+    }
+
+    @Override
+    public byte asByte() {
+        throw new RuntimeException("not a rlp item");
+    }
+
+    @Override
+    public short asShort() {
+        throw new RuntimeException("not a rlp item");
+    }
+
+    @Override
+    public long asLong() {
+        throw new RuntimeException("not a rlp item");
+    }
+
+    @Override
+    public BigInteger asBigInteger() {
+        throw new RuntimeException("not a rlp item");
+    }
+
+    @Override
+    public String asString() {
+        throw new RuntimeException("not a rlp item");
+    }
+
+    @Override
+    public boolean asBoolean() {
+        throw new RuntimeException("not a rlp item");
+    }
+
+    @Override
+    public int asInt() {
+        throw new RuntimeException("not a rlp item");
     }
 }

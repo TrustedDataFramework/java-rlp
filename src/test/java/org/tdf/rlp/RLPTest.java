@@ -15,7 +15,9 @@ import java.util.stream.Stream;
 
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
-import static org.tdf.rlp.RLPItem.*;
+import static org.tdf.rlp.RLPElement.*;
+import static org.tdf.rlp.RLPItem.NULL;
+import static org.tdf.rlp.RLPItem.encodeElement;
 
 @RunWith(JUnit4.class)
 public class RLPTest {
@@ -59,7 +61,7 @@ public class RLPTest {
         public static RLPSerializer SERIALIZER = new RLPSerializer();
 
         public byte[] serialize(Object o) {
-            return RLPElement.encode(o).getEncoded();
+            return RLPElement.encodeAsRLPElement(o).getEncoded();
         }
     }
 
@@ -112,7 +114,7 @@ public class RLPTest {
         assert serializer.strings.get(0).equals("1");
         assert serializer.strings.get(1).equals("2");
         assert serializer.strings.get(2).equals("3");
-        RLPList list = RLPElement.fromEncoded(data).getAsList();
+        RLPList list = RLPElement.fromEncoded(data).asRLPList();
         list.setEncoded(null);
         assertArrayEquals(data, list.getEncoded());
     }
@@ -132,7 +134,7 @@ public class RLPTest {
         expected = "cc83646f6783676f6483636174";
         encoderesult = RLPSerializer.SERIALIZER.serialize(test);
         assertEquals(expected, HexBytes.encode(encoderesult));
-        assertArrayEquals(RLPElement.fromEncoded(encoderesult).getAsList().stream().map(x -> x.getAsItem().getString()).toArray(), test);
+        assertArrayEquals(RLPElement.fromEncoded(encoderesult).asRLPList().stream().map(x -> x.asRLPItem().asString()).toArray(), test);
     }
 
     @Test
@@ -405,9 +407,9 @@ public class RLPTest {
         String expected = "83646f67";
         byte[] encoderesult = encodeString(test);
         assertEquals(expected, HexBytes.encode(encoderesult));
-        assert RLPElement.fromEncoded(HexBytes.decode(expected)).getAsItem().getString().equals(test);
+        assert RLPElement.fromEncoded(HexBytes.decode(expected)).asRLPItem().asString().equals(test);
 
-        byte[] decodeResult = RLPElement.fromEncoded(encoderesult).getAsItem().get();
+        byte[] decodeResult = RLPElement.fromEncoded(encoderesult).asRLPItem().asBytes();
         assertEquals(test, new String(decodeResult, StandardCharsets.US_ASCII));
     }
 
@@ -429,13 +431,13 @@ public class RLPTest {
 
             long start1 = System.currentTimeMillis();
             for (int i = 0; i < ITERATIONS; i++) {
-                list = RLPElement.fromEncoded(payload).getAsList();
+                list = RLPElement.fromEncoded(payload).asRLPList();
             }
             long end1 = System.currentTimeMillis();
 
             long start2 = System.currentTimeMillis();
             for (int i = 0; i < ITERATIONS; i++) {
-                list = RLPElement.fromEncoded(payload).getAsList();
+                list = RLPElement.fromEncoded(payload).asRLPList();
             }
             long end2 = System.currentTimeMillis();
 
@@ -460,7 +462,7 @@ public class RLPTest {
         assertArrayEquals(RLPElement.fromEncoded(HexBytes.decode(expectedOutput)).getEncoded(), HexBytes.decode(expectedOutput));
         assertArrayEquals(
                 RLPElement.fromEncoded(HexBytes.decode(expectedOutput))
-                        .getAsList().stream().map(x -> x.getEncoded()).toArray(),
+                        .asRLPList().stream().map(x -> x.getEncoded()).toArray(),
                 new byte[][]{rlpKeysList, rlpValuesList, rlpCode}
         );
     }
@@ -470,7 +472,7 @@ public class RLPTest {
 
         BigInteger integer = new BigInteger("80", 10);
         byte[] encodedData = encodeBigInteger(integer);
-        assert RLPElement.fromEncoded(encodedData).getAsItem().getInt() == 80;
+        assert RLPElement.fromEncoded(encodedData).asRLPItem().asInt() == 80;
     }
 
     @Test
@@ -478,7 +480,7 @@ public class RLPTest {
         String result = HexBytes.encode(encodeInt(0x7f));
         String expected = "7f";
         assertEquals(expected, result);
-        assert RLPElement.fromEncoded(HexBytes.decode(expected)).getAsItem().getInt() == 0x7f;
+        assert RLPElement.fromEncoded(HexBytes.decode(expected)).asRLPItem().asInt() == 0x7f;
     }
 
     @Test
@@ -486,7 +488,7 @@ public class RLPTest {
         String result = HexBytes.encode(encodeInt(0x80));
         String expected = "8180";
         assertEquals(expected, result);
-        assert RLPElement.fromEncoded(HexBytes.decode(expected)).getAsItem().getInt() == 0x80;
+        assert RLPElement.fromEncoded(HexBytes.decode(expected)).asRLPItem().asInt() == 0x80;
     }
 
 
@@ -495,7 +497,7 @@ public class RLPTest {
         String result = HexBytes.encode(encodeInt(0xED));
         String expected = "81ed";
         assertEquals(expected, result);
-        assert RLPElement.fromEncoded(HexBytes.decode(result)).getAsItem().getInt() == 0xED;
+        assert RLPElement.fromEncoded(HexBytes.decode(result)).asRLPItem().asInt() == 0xED;
     }
 
     // encode a binary tree
@@ -508,7 +510,7 @@ public class RLPTest {
         root.children.get(1).addChildren(Arrays.asList(new Node("6"), new Node("7")));
 
         byte[] encoded = RLPSerializer.SERIALIZER.serialize(root);
-        RLPElement el = RLPElement.encode(root);
+        RLPElement el = RLPElement.encodeAsRLPElement(root);
         Node root2 = RLPDeserializer.deserialize(encoded, Node.class);
         assert root2.children.get(0).children.get(0).name.equals("4");
         assert root2.children.get(0).children.get(1).name.equals("5");
@@ -522,10 +524,10 @@ public class RLPTest {
 
         @Override
         public Map<String, String> decode(RLPElement element) {
-            RLPList list = element.getAsList();
+            RLPList list = element.asRLPList();
             Map<String, String> map = new HashMap<>(list.size() / 2);
             for (int i = 0; i < list.size(); i += 2) {
-                map.put(list.get(i).getAsItem().getString(), list.get(i + 1).getAsItem().getString());
+                map.put(list.get(i).asRLPItem().asString(), list.get(i + 1).asRLPItem().asString());
             }
             return map;
         }
@@ -588,7 +590,7 @@ public class RLPTest {
         byte[] rlpBomb = HexBytes.decode(rlpBombStr);
         boolean isProtected = false;
         try {
-            RLPList list = RLPElement.fromEncoded(rlpBomb).getAsList();
+            RLPList list = RLPElement.fromEncoded(rlpBomb).asRLPList();
         } catch (Throwable cause) {
             // decode2 is protected!
             while (cause != null) {
@@ -601,7 +603,7 @@ public class RLPTest {
 
         isProtected = false;
         try {
-            RLPList list = RLPElement.fromEncoded(rlpBomb).getAsList();
+            RLPList list = RLPElement.fromEncoded(rlpBomb).asRLPList();
         } catch (Throwable cause) {
             // decode is protected now too!
             // decode2 is protected!
@@ -1150,7 +1152,7 @@ public class RLPTest {
 
     @Test(expected = Exception.class)
     public void testEncodeFail() {
-        RLPElement.encode(new Foo());
+        RLPElement.encodeAsRLPElement(new Foo());
     }
 
     static class Foo {
@@ -1161,7 +1163,7 @@ public class RLPTest {
     @Test
     public void testListCache() {
         byte[] encoded = RLPList.of(RLPItem.fromInt(1), RLPItem.fromInt(2)).getEncoded();
-        RLPList list = RLPElement.fromEncoded(encoded).getAsList();
+        RLPList list = RLPElement.fromEncoded(encoded).asRLPList();
         byte[] encoded2 = list.getEncoded();
         list.setEncoded(null);
         byte[] encoded3 = list.getEncoded();
@@ -1172,7 +1174,7 @@ public class RLPTest {
     @Test
     public void testItemCache() {
         byte[] encoded = RLPItem.fromString("hello world").getEncoded();
-        RLPItem item = RLPElement.fromEncoded(encoded).getAsItem();
+        RLPItem item = RLPElement.fromEncoded(encoded).asRLPItem();
         byte[] encoded2 = item.getEncoded();
         item.setEncoded(null);
         byte[] encoded3 = item.getEncoded();
@@ -1255,7 +1257,7 @@ public class RLPTest {
         nested.nested.add(new ArrayList<>());
         nested.nested.get(0).add(new ArrayList<>());
         nested.nested.get(0).get(0).addAll(Arrays.asList("aaa", "bbb"));
-        byte[] encoded = RLPSerializer.SERIALIZER.serialize(nested);
+        byte[] encoded = RLPElement.encode(nested);
         nested = RLPDeserializer.deserialize(encoded, Nested.class);
         assert nested.nested.get(0).get(0).get(0).equals("aaa");
         assert nested.nested.get(0).get(0).get(1).equals("bbb");
