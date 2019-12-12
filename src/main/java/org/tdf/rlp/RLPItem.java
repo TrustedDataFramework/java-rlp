@@ -57,17 +57,21 @@ public final class RLPItem implements RLPElement {
     }
 
     public static RLPItem fromString(String s) {
+        if(s == null) return NULL;
         return fromBytes(s.getBytes(StandardCharsets.UTF_8));
     }
 
     public static RLPItem fromBytes(byte[] data) {
         if (data == null || data.length == 0) return NULL;
+        if(data.length == 1 && (Byte.toUnsignedInt(data[0]) == 1)) return ONE;
         return new RLPItem(new LazyByteArray(data));
     }
 
     public static RLPItem fromBigInteger(BigInteger bigInteger) {
+        if (bigInteger == null || bigInteger.equals(BigInteger.ZERO)) return NULL;
+        if (bigInteger.equals(BigInteger.ONE)) return ONE;
         if (bigInteger.compareTo(BigInteger.ZERO) < 0) throw new RuntimeException("negative numbers are not allowed");
-        if (bigInteger.equals(BigInteger.ZERO)) return NULL;
+
         return fromBytes(asUnsignedByteArray(bigInteger));
     }
 
@@ -129,7 +133,7 @@ public final class RLPItem implements RLPElement {
         if (isNull()) {
             return 0;
         }
-        if(this == ONE) return 1;
+        if (this == ONE) return 1;
         if (longNumber != null) return longNumber;
         // numbers are ont starts with zero byte
         byte[] data = asBytes();
@@ -141,7 +145,7 @@ public final class RLPItem implements RLPElement {
 
     public BigInteger asBigInteger() {
         if (isNull()) return BigInteger.ZERO;
-        if(this == ONE) return BigInteger.ONE;
+        if (this == ONE) return BigInteger.ONE;
         byte[] data = asBytes();
         if (data[0] == 0) throw new RuntimeException("not a number");
         return new BigInteger(1, data);

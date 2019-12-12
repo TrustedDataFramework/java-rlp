@@ -1182,18 +1182,16 @@ public class RLPTest {
         assertArrayEquals(encoded2, encoded3);
     }
 
-    @Ignore
     @Test
 //    ethereumJ: encode 320000 bytes in 127 ms
 //    ethereumJ: decode 320000 bytes in 159 ms
 //    our: encode 320000 bytes in 109 ms
 //    our: decode 320000 bytes in 4 ms
     public void testBomb() {
-        int n = 10000;
-        SecureRandom sr = new SecureRandom();
+        int n = 1000000;
         RLPList list = RLPList.createEmpty(n);
+        byte[] bytes = new byte[]{1};
         for (int i = 0; i < n; i++) {
-            byte[] bytes = new byte[10000];
             list.add(RLPItem.fromBytes(bytes));
         }
         long start = System.currentTimeMillis();
