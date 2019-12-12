@@ -88,6 +88,11 @@ public final class RLPDeserializer {
             return (T) element.asRLPList();
         }
         Object o;
+        try{
+            clazz.getConstructor();
+        }catch (Exception e){
+            throw new RuntimeException(clazz + " should has a no arguments constructor");
+        }
         try {
             o = clazz.newInstance();
         } catch (Exception e) {
