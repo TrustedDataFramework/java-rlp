@@ -56,9 +56,9 @@ public class Node{
         root.children.get(1).addChildren(Arrays.asList(new Node("6"), new Node("7")));
 
         // encode to byte array
-        byte[] encoded = RLPElement.encodeAsRLPElement(root).getEncoded();
+        byte[] encoded = RLPElement.encode(root);
         // encode to rlp element
-        RLPElement el = RLPElement.encodeAsRLPElement(root);
+        RLPElement el = RLPElement.readRLPTree(root);
         // decode from byte array
         Node root2 = RLPDeserializer.deserialize(encoded, Node.class);
         assertTrue(root2.children.get(0).children.get(0).name.equals("4"));
@@ -71,7 +71,7 @@ public class Node{
         nested.nested.add(new ArrayList<>());
         nested.nested.get(0).add(new ArrayList<>());
         nested.nested.get(0).get(0).addAll(Arrays.asList("aaa", "bbb"));
-        encoded = RLPElement.encodeAsRLPElement(nested).getEncoded();
+        encoded = RLPElement.encode(nested);
         nested = RLPDeserializer.deserialize(encoded, Nested.class);
         assertTrue(nested.nested.get(0).get(0).get(0).equals("aaa"));
         assertTrue(nested.nested.get(0).get(0).get(1).equals("bbb"));
@@ -132,7 +132,7 @@ public class Main{
         Map<String, String> m = new HashMap<>();
         m.put("a", "1");
         m.put("b", "2");
-        byte[] encoded = RLPElement.encodeAsRLPElement(new MapWrapper(m)).getEncoded();
+        byte[] encoded = RLPElement.encode(new MapWrapper(m));
         MapWrapper decoded = RLPDeserializer.deserialize(encoded, MapWrapper.class);
         assertTrue(decoded.map.get("a").equals("1"));
     }
@@ -155,6 +155,7 @@ public class Nested{
     }
 }
 ```    
+
 ```java
 public class Main{
     public static void main(String[] args){
