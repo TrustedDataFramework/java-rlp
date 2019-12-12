@@ -61,7 +61,7 @@ public class RLPTest {
         public static RLPSerializer SERIALIZER = new RLPSerializer();
 
         public byte[] serialize(Object o) {
-            return RLPElement.encodeAsRLPElement(o).getEncoded();
+            return RLPElement.readRLPTree(o).getEncoded();
         }
     }
 
@@ -510,7 +510,7 @@ public class RLPTest {
         root.children.get(1).addChildren(Arrays.asList(new Node("6"), new Node("7")));
 
         byte[] encoded = RLPSerializer.SERIALIZER.serialize(root);
-        RLPElement el = RLPElement.encodeAsRLPElement(root);
+        RLPElement el = RLPElement.readRLPTree(root);
         Node root2 = RLPDeserializer.deserialize(encoded, Node.class);
         assert root2.children.get(0).children.get(0).name.equals("4");
         assert root2.children.get(0).children.get(1).name.equals("5");
@@ -1152,7 +1152,7 @@ public class RLPTest {
 
     @Test(expected = Exception.class)
     public void testEncodeFail() {
-        RLPElement.encodeAsRLPElement(new Foo());
+        RLPElement.readRLPTree(new Foo());
     }
 
     static class Foo {

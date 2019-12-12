@@ -44,7 +44,7 @@ public class Main{
         Map<String, String> m = new HashMap<>();
         m.put("a", "1");
         m.put("b", "2");
-        byte[] encoded = RLPElement.encodeAsRLPElement(new MapWrapper(m)).getEncoded();
+        byte[] encoded = RLPElement.encode(new MapWrapper(m));
         MapWrapper decoded = RLPDeserializer.deserialize(encoded, MapWrapper.class);
         assertTrue(decoded.map.get("a").equals("1"));
     }

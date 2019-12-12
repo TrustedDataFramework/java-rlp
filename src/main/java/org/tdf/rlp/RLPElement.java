@@ -52,8 +52,8 @@ public interface RLPElement {
         return RLPParser.fromEncoded(data);
     }
 
-    // encode any object as a rlp element
-    static RLPElement encodeAsRLPElement(Object t) {
+    // convert any object as a rlp tree
+    static RLPElement readRLPTree(Object t) {
         if (t == null) return NULL;
         if(t instanceof Boolean || t.getClass() == boolean.class){
             return ((Boolean) t) ? ONE : NULL;
@@ -82,14 +82,14 @@ public interface RLPElement {
         if (t.getClass().isArray()) {
             RLPList list = RLPList.createEmpty(Array.getLength(t));
             for (int i = 0; i < Array.getLength(t); i++) {
-                list.add(encodeAsRLPElement(Array.get(t, i)));
+                list.add(readRLPTree(Array.get(t, i)));
             }
             return list;
         }
         if (t instanceof Collection) {
             RLPList list = RLPList.createEmpty(((Collection) t).size());
             for (Object o : ((Collection) t)) {
-                list.add(encodeAsRLPElement(o));
+                list.add(readRLPTree(o));
             }
             return list;
         }
@@ -107,7 +107,7 @@ public interface RLPElement {
                 }
             }
             try {
-                return encodeAsRLPElement(f.get(t));
+                return readRLPTree(f.get(t));
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
@@ -115,7 +115,7 @@ public interface RLPElement {
     }
 
     static byte[] encode(Object o){
-        return encodeAsRLPElement(o).getEncoded();
+        return readRLPTree(o).getEncoded();
     }
 
     static byte[] encodeBoolean(boolean b) {
