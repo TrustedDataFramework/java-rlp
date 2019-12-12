@@ -6,13 +6,13 @@ import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 
 import static org.tdf.rlp.LazyByteArray.EMPTY;
-import static org.tdf.rlp.RLPConstants.*;
+import static org.tdf.rlp.RLPCodec.encodeBytes;
 
 /**
  * immutable rlp item
  */
 public final class RLPItem implements RLPElement {
-    private static byte[] NULL_ENCODED = encodeElement(null);
+    private static byte[] NULL_ENCODED = encodeBytes(null);
     public static final RLPItem ONE = new RLPItem(new LazyByteArray(new byte[]{1}));
 
     private LazyByteArray data;
@@ -126,23 +126,24 @@ public final class RLPItem implements RLPElement {
     }
 
     public long asLong() {
+        if (isNull()) {
+            return 0;
+        }
+        if(this == ONE) return 1;
         if (longNumber != null) return longNumber;
         // numbers are ont starts with zero byte
         byte[] data = asBytes();
         if (data.length > 0 && data[0] == 0) throw new RuntimeException("not a number");
-        if (isNull()) {
-            longNumber = 0L;
-            return longNumber;
-        }
         if (data.length > Long.BYTES) throw new RuntimeException("not a number");
         longNumber = ByteBuffer.wrap(concat(new byte[Long.BYTES - data.length], data)).getLong();
         return longNumber;
     }
 
     public BigInteger asBigInteger() {
+        if (isNull()) return BigInteger.ZERO;
+        if(this == ONE) return BigInteger.ONE;
         byte[] data = asBytes();
         if (data[0] == 0) throw new RuntimeException("not a number");
-        if (isNull()) return BigInteger.ZERO;
         return new BigInteger(1, data);
     }
 
@@ -157,55 +158,10 @@ public final class RLPItem implements RLPElement {
 
     public byte[] getEncoded() {
         if (isNull()) return NULL_ENCODED;
-        if (encoded == null) encoded = new LazyByteArray(encodeElement(asBytes()));
+        if (encoded == null) encoded = new LazyByteArray(encodeBytes(asBytes()));
         return encoded.get();
     }
 
-    public static byte[] encodeElement(byte[] srcData) {
-        // [0x80]
-        if (srcData == null || srcData.length == 0) {
-            return new byte[]{(byte) OFFSET_SHORT_ITEM};
-            // [0x00]
-        }
-        if (srcData.length == 1 && (srcData[0] & 0xFF) < OFFSET_SHORT_ITEM) {
-            return srcData;
-            // [0x80, 0xb7], 0 - 55 bytes
-        }
-        if (srcData.length < SIZE_THRESHOLD) {
-            // length = 8X
-            byte length = (byte) (OFFSET_SHORT_ITEM + srcData.length);
-            byte[] data = Arrays.copyOf(srcData, srcData.length + 1);
-            System.arraycopy(data, 0, data, 1, srcData.length);
-            data[0] = length;
-
-            return data;
-            // [0xb8, 0xbf], 56+ bytes
-        }
-        // length of length = BX
-        // prefix = [BX, [length]]
-        int tmpLength = srcData.length;
-        byte lengthOfLength = 0;
-        while (tmpLength != 0) {
-            ++lengthOfLength;
-            tmpLength = tmpLength >> 8;
-        }
-
-        // set length Of length at first byte
-        byte[] data = new byte[1 + lengthOfLength + srcData.length];
-        data[0] = (byte) (OFFSET_LONG_ITEM + lengthOfLength);
-
-        // copy length after first byte
-        tmpLength = srcData.length;
-        for (int i = lengthOfLength; i > 0; --i) {
-            data[i] = (byte) (tmpLength & 0xFF);
-            tmpLength = tmpLength >> 8;
-        }
-
-        // at last copy the number bytes after its length
-        System.arraycopy(srcData, 0, data, 1 + lengthOfLength, srcData.length);
-
-        return data;
-    }
 
     /**
      * Returns the values from each provided array combined into a single array. For example, {@code

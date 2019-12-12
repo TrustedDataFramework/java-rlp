@@ -5,6 +5,8 @@ import java.security.NoSuchAlgorithmException;
 import java.security.Provider;
 import java.security.Security;
 
+import static org.tdf.rlp.RLPCodec.encodeBytes;
+
 
 public class HashUtil {
 
@@ -25,7 +27,7 @@ public class HashUtil {
         HASH_512_ALGORITHM_NAME = "ETH-KECCAK-512";
         EMPTY_DATA_HASH = sha3(EMPTY_BYTE_ARRAY);
         EMPTY_LIST_HASH = sha3(RLPList.createEmpty().getEncoded());
-        EMPTY_TRIE_HASH = sha3(RLPItem.encodeElement(EMPTY_BYTE_ARRAY));
+        EMPTY_TRIE_HASH = sha3(encodeBytes(EMPTY_BYTE_ARRAY));
     }
 
     /**

@@ -48,6 +48,10 @@ public interface RLPElement {
 
     boolean asBoolean();
 
+    default <T> T as(Class<T> clazz){
+        return RLPCodec.decode(this, clazz);
+    }
+
     static RLPElement fromEncoded(byte[] data) {
         return RLPParser.fromEncoded(data);
     }

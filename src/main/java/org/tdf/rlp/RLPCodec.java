@@ -1,11 +1,17 @@
 package org.tdf.rlp;
 
+import lombok.NonNull;
+
 import java.lang.reflect.Array;
 import java.lang.reflect.Field;
 import java.math.BigInteger;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
+
+import static org.tdf.rlp.RLPConstants.*;
 
 public final class RLPCodec {
 
@@ -136,51 +142,140 @@ public final class RLPCodec {
         return (T) o;
     }
 
-    static byte[] encodeBoolean(boolean b) {
+    // rlp primitives encoding/decoding
+    public static byte[] encodeBoolean(boolean b) {
         return RLPItem.fromBoolean(b).getEncoded();
     }
 
-    static boolean decodeBoolean(byte[] encoded) {
+    public static boolean decodeBoolean(byte[] encoded) {
         return RLPElement.fromEncoded(encoded).asBoolean();
     }
 
-    static byte[] encodeByte(byte b) {
+    public static byte[] encodeByte(byte b) {
         return RLPItem.fromByte(b).getEncoded();
     }
 
-    static byte[] encodeShort(short s) {
+    public static byte[] encodeShort(short s) {
         return RLPItem.fromShort(s).getEncoded();
     }
 
-    static byte[] encodeInt(int n) {
+    public static byte[] encodeInt(int n) {
         return RLPItem.fromInt(n).getEncoded();
     }
 
-    static byte[] encodeBigInteger(BigInteger bigInteger) {
+    public static byte[] encodeBigInteger(BigInteger bigInteger) {
         return RLPItem.fromBigInteger(bigInteger).getEncoded();
     }
 
-    static byte[] encodeString(String s) {
+    public static byte[] encodeString(String s) {
         return RLPItem.fromString(s).getEncoded();
     }
 
-    static int decodeInt(byte[] encoded) {
+    public static int decodeInt(byte[] encoded) {
         return RLPElement.fromEncoded(encoded).asInt();
     }
 
-    static short decodeShort(byte[] encoded) {
+    public static short decodeShort(byte[] encoded) {
         return RLPElement.fromEncoded(encoded).asShort();
     }
 
-    static long decodeLong(byte[] encoded) {
+    public static long decodeLong(byte[] encoded) {
         return RLPElement.fromEncoded(encoded).asLong();
     }
 
-    static String decodeString(byte[] encoded) {
+    public static String decodeString(byte[] encoded) {
         return RLPElement.fromEncoded(encoded).asString();
     }
 
-    static byte[] encode(Object o){
+    public static byte[] encode(Object o){
         return RLPElement.readRLPTree(o).getEncoded();
+    }
+
+    // rlp list encode
+    public static byte[] encodeBytes(byte[] srcData) {
+        // [0x80]
+        if (srcData == null || srcData.length == 0) {
+            return new byte[]{(byte) OFFSET_SHORT_ITEM};
+            // [0x00]
+        }
+        if (srcData.length == 1 && (srcData[0] & 0xFF) < OFFSET_SHORT_ITEM) {
+            return srcData;
+            // [0x80, 0xb7], 0 - 55 bytes
+        }
+        if (srcData.length < SIZE_THRESHOLD) {
+            // length = 8X
+            byte length = (byte) (OFFSET_SHORT_ITEM + srcData.length);
+            byte[] data = Arrays.copyOf(srcData, srcData.length + 1);
+            System.arraycopy(data, 0, data, 1, srcData.length);
+            data[0] = length;
+
+            return data;
+            // [0xb8, 0xbf], 56+ bytes
+        }
+        // length of length = BX
+        // prefix = [BX, [length]]
+        int tmpLength = srcData.length;
+        byte lengthOfLength = 0;
+        while (tmpLength != 0) {
+            ++lengthOfLength;
+            tmpLength = tmpLength >> 8;
+        }
+
+        // set length Of length at first byte
+        byte[] data = new byte[1 + lengthOfLength + srcData.length];
+        data[0] = (byte) (OFFSET_LONG_ITEM + lengthOfLength);
+
+        // copy length after first byte
+        tmpLength = srcData.length;
+        for (int i = lengthOfLength; i > 0; --i) {
+            data[i] = (byte) (tmpLength & 0xFF);
+            tmpLength = tmpLength >> 8;
+        }
+
+        // at last copy the number bytes after its length
+        System.arraycopy(srcData, 0, data, 1 + lengthOfLength, srcData.length);
+
+        return data;
+    }
+
+    public static byte[] encodeElements(@NonNull Collection<byte[]> elements) {
+        int totalLength = 0;
+        for (byte[] element1 : elements) {
+            totalLength += element1.length;
+        }
+
+        byte[] data;
+        int copyPos;
+        if (totalLength < SIZE_THRESHOLD) {
+
+            data = new byte[1 + totalLength];
+            data[0] = (byte) (OFFSET_SHORT_LIST + totalLength);
+            copyPos = 1;
+        } else {
+            // length of length = BX
+            // prefix = [BX, [length]]
+            int tmpLength = totalLength;
+            byte byteNum = 0;
+            while (tmpLength != 0) {
+                ++byteNum;
+                tmpLength = tmpLength >> 8;
+            }
+            tmpLength = totalLength;
+            byte[] lenBytes = new byte[byteNum];
+            for (int i = 0; i < byteNum; ++i) {
+                lenBytes[byteNum - 1 - i] = (byte) ((tmpLength >> (8 * i)) & 0xFF);
+            }
+            // first byte = F7 + bytes.length
+            data = new byte[1 + lenBytes.length + totalLength];
+            data[0] = (byte) (OFFSET_LONG_LIST + byteNum);
+            System.arraycopy(lenBytes, 0, data, 1, lenBytes.length);
+
+            copyPos = lenBytes.length + 1;
+        }
+        for (byte[] element : elements) {
+            System.arraycopy(element, 0, data, copyPos, element.length);
+            copyPos += element.length;
+        }
+        return data;
     }
 }

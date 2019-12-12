@@ -17,7 +17,7 @@ import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.tdf.rlp.RLPCodec.*;
 import static org.tdf.rlp.RLPItem.NULL;
-import static org.tdf.rlp.RLPItem.encodeElement;
+import static org.tdf.rlp.RLPItem.ONE;
 
 @RunWith(JUnit4.class)
 public class RLPTest {
@@ -320,7 +320,7 @@ public class RLPTest {
 
         String expected = "b840" + byteArr;
 
-        assertEquals(expected, HexBytes.encode(encodeElement(byteArray)));
+        assertEquals(expected, HexBytes.encode(encodeBytes(byteArray)));
         assertEquals(expected, HexBytes.encode(RLPItem.fromBytes(byteArray).getEncoded()));
         assertEquals(expected, HexBytes.encode(
                 RLPElement.fromEncoded(HexBytes.decode(expected)).getEncoded()
@@ -337,26 +337,26 @@ public class RLPTest {
 
     @Test
     /** encode null value */
-    public void testEncodeElementNull() {
+    public void testencodeBytesNull() {
 
-        byte[] actuals = encodeElement(null);
+        byte[] actuals = encodeBytes(null);
         assertArrayEquals(new byte[]{(byte) 0x80}, actuals);
     }
 
 
     @Test
     /** encode single byte 0x00 */
-    public void testEncodeElementZero() {
+    public void testencodeBytesZero() {
 
-        byte[] actuals = encodeElement(new byte[]{0x00});
+        byte[] actuals = encodeBytes(new byte[]{0x00});
         assertArrayEquals(new byte[]{0x00}, actuals);
     }
 
     @Test
     /** encode single byte 0x01 */
-    public void testEncodeElementOne() {
+    public void testencodeBytesOne() {
 
-        byte[] actuals = encodeElement(new byte[]{0x01});
+        byte[] actuals = encodeBytes(new byte[]{0x01});
         assertArrayEquals(new byte[]{(byte) 0x01}, actuals);
     }
 
@@ -371,7 +371,7 @@ public class RLPTest {
                         0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
                         0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
                         0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
-        prevHash = encodeElement(prevHash);
+        prevHash = encodeBytes(prevHash);
 
         /* 2 */
         byte[] uncleList = HashUtil.sha3(RLPList.createEmpty().getEncoded());
@@ -381,9 +381,9 @@ public class RLPTest {
                 {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
                         0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
                         0x00, 0x00, 0x00, 0x00};
-        coinbase = encodeElement(coinbase);
+        coinbase = encodeBytes(coinbase);
 
-        byte[] header = RLPList.encodeList(
+        byte[] header = encodeElements(
                 Arrays.asList(prevHash, uncleList, coinbase));
 
         assertEquals("f856a000000000000000000000000000000000000000000000000000000000000000001dcc4de8dec75d7aab85b567b6ccd41ad312451b948a7413f0a142fd40d49347940000000000000000000000000000000000000000",
@@ -456,7 +456,7 @@ public class RLPTest {
         byte[] rlpKeysList = HexBytes.decode("c0");
         byte[] rlpValuesList = HexBytes.decode("c0");
         byte[] rlpCode = HexBytes.decode("b4600160003556601359506301000000600035040f6018590060005660805460016080530160005760003560805760203560003557");
-        byte[] output = RLPList.encodeList(Arrays.asList(rlpKeysList, rlpValuesList, rlpCode));
+        byte[] output = encodeElements(Arrays.asList(rlpKeysList, rlpValuesList, rlpCode));
 
         assertEquals(expectedOutput, HexBytes.encode(output));
         assertArrayEquals(RLPElement.fromEncoded(HexBytes.decode(expectedOutput)).getEncoded(), HexBytes.decode(expectedOutput));
@@ -1298,5 +1298,24 @@ public class RLPTest {
         RLPCodec.decodeList(
                 list, Boolean.class
         );
+    }
+
+    @Test
+    public void test(){
+        assert !NULL.as(boolean.class);
+        assert ONE.as(boolean.class);
+        assert NULL.asBigInteger().compareTo(BigInteger.ZERO) == 0;
+        assert RLPItem.fromBoolean(true) == ONE;
+        assert RLPItem.fromLong(1) == ONE;
+        assert RLPItem.fromInt(0) == NULL;
+        assert !NULL.isRLPList();
+        assert NULL.isRLPItem();
+        assert (NULL.getEncoded()[0] & 0xff) == RLPConstants.OFFSET_SHORT_ITEM;
+        assert RLPItem.fromInt(2).asBigInteger().compareTo(BigInteger.valueOf(2)) == 0;
+    }
+
+    @Test(expected = RuntimeException.class)
+    public void test2(){
+        NULL.asRLPList();
     }
 }
