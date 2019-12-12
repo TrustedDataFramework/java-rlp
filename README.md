@@ -68,16 +68,6 @@ public class Node{
         assertTrue(root2.children.get(0).children.get(1).name.equals("5"));
         assertTrue(root2.children.get(1).children.get(0).name.equals("6"));
         assertTrue(root2.children.get(1).children.get(1).name.equals("7"));
-
-        Nested nested = new Nested();
-        nested.nested = new ArrayList<>();
-        nested.nested.add(new ArrayList<>());
-        nested.nested.get(0).add(new ArrayList<>());
-        nested.nested.get(0).get(0).addAll(Arrays.asList("aaa", "bbb"));
-        encoded = encode(nested);
-        nested = decode(encoded, Nested.class);
-        assertTrue(nested.nested.get(0).get(0).get(0).equals("aaa"));
-        assertTrue(nested.nested.get(0).get(0).get(1).equals("bbb"));
     }
 
     public static void assertTrue(boolean b){
