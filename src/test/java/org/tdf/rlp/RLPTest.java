@@ -1197,12 +1197,12 @@ public class RLPTest {
         long start = System.currentTimeMillis();
         byte[] encoded = list.getEncoded();
         long end = System.currentTimeMillis();
-        System.out.println("encode " + (n * 32) + " bytes in " + (end - start) + " ms");
+        System.out.println("encode " + (n) + " bytes in " + (end - start) + " ms");
 
         start = System.currentTimeMillis();
         RLPElement decoded = RLPElement.fromEncoded(encoded);
         end = System.currentTimeMillis();
-        System.out.println("decode " + (n * 32) + " bytes in " + (end - start) + " ms");
+        System.out.println("decode " + (n) + " bytes in " + (end - start) + " ms");
     }
 
     private static class Nested{
