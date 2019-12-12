@@ -7,28 +7,28 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public final class RLPDeserializer {
+public final class RLPCodec {
 
-    public static <T> T deserialize(byte[] data, Class<T> clazz) {
+    public static <T> T decode(byte[] data, Class<T> clazz) {
         RLPElement element = RLPElement.fromEncoded(data);
-        return deserialize(element, clazz);
+        return decode(element, clazz);
     }
 
-    static <T> List<T> deserializeList(RLPElement element, Class<T> elementType){
-        return deserializeList(element.asRLPList(), 1, elementType);
+    static <T> List<T> decodeList(RLPElement element, Class<T> elementType){
+        return decodeList(element.asRLPList(), 1, elementType);
     }
 
-    static <T> List<T> deserializeList(byte[] data, Class<T> elementType) {
+    static <T> List<T> decodeList(byte[] data, Class<T> elementType) {
         RLPElement element = RLPElement.fromEncoded(data);
-        return deserializeList(element.asRLPList(), 1, elementType);
+        return decodeList(element.asRLPList(), 1, elementType);
     }
 
-    private static List deserializeList(RLPList list, int level, Class<?> elementType) {
+    private static List decodeList(RLPList list, int level, Class<?> elementType) {
         if (level == 0) throw new RuntimeException("level should be positive");
         if (level > 1) {
             List res = new ArrayList(list.size());
             for (int i = 0; i < list.size(); i++) {
-                res.add(deserializeList(list.get(i).asRLPList(), level - 1, elementType));
+                res.add(decodeList(list.get(i).asRLPList(), level - 1, elementType));
             }
             return res;
         }
@@ -38,12 +38,12 @@ public final class RLPDeserializer {
         }
         List res = new ArrayList<>(list.size());
         for (int i = 0; i < list.size(); i++) {
-            res.add(deserialize(list.get(i), elementType));
+            res.add(decode(list.get(i), elementType));
         }
         return res;
     }
 
-    public static <T> T deserialize(RLPElement element, Class<T> clazz) {
+    public static <T> T decode(RLPElement element, Class<T> clazz) {
         if (clazz == RLPElement.class) return (T) element;
         if (clazz == RLPList.class) return (T) element.asRLPList();
         if (clazz == RLPItem.class) return (T) element.asRLPItem();
@@ -79,7 +79,7 @@ public final class RLPDeserializer {
             Class elementType = clazz.getComponentType();
             Object res = Array.newInstance(clazz.getComponentType(), element.asRLPList().size());
             for (int i = 0; i < element.asRLPList().size(); i++) {
-                Array.set(res, i, deserialize(element.asRLPList().get(i), elementType));
+                Array.set(res, i, decode(element.asRLPList().get(i), elementType));
             }
             return (T) res;
         }
@@ -116,7 +116,7 @@ public final class RLPDeserializer {
 
             if (!f.getType().equals(List.class)) {
                 try {
-                    f.set(o, deserialize(el, f.getType()));
+                    f.set(o, decode(el, f.getType()));
                 } catch (Exception e) {
                     throw new RuntimeException(e);
                 }
@@ -128,11 +128,59 @@ public final class RLPDeserializer {
                     continue;
                 }
                 RLPUtils.Resolved resolved = RLPUtils.resolveFieldType(f);
-                f.set(o, deserializeList(el.asRLPList(), resolved.level, resolved.type));
+                f.set(o, decodeList(el.asRLPList(), resolved.level, resolved.type));
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
         }
         return (T) o;
+    }
+
+    static byte[] encodeBoolean(boolean b) {
+        return RLPItem.fromBoolean(b).getEncoded();
+    }
+
+    static boolean decodeBoolean(byte[] encoded) {
+        return RLPElement.fromEncoded(encoded).asBoolean();
+    }
+
+    static byte[] encodeByte(byte b) {
+        return RLPItem.fromByte(b).getEncoded();
+    }
+
+    static byte[] encodeShort(short s) {
+        return RLPItem.fromShort(s).getEncoded();
+    }
+
+    static byte[] encodeInt(int n) {
+        return RLPItem.fromInt(n).getEncoded();
+    }
+
+    static byte[] encodeBigInteger(BigInteger bigInteger) {
+        return RLPItem.fromBigInteger(bigInteger).getEncoded();
+    }
+
+    static byte[] encodeString(String s) {
+        return RLPItem.fromString(s).getEncoded();
+    }
+
+    static int decodeInt(byte[] encoded) {
+        return RLPElement.fromEncoded(encoded).asInt();
+    }
+
+    static short decodeShort(byte[] encoded) {
+        return RLPElement.fromEncoded(encoded).asShort();
+    }
+
+    static long decodeLong(byte[] encoded) {
+        return RLPElement.fromEncoded(encoded).asLong();
+    }
+
+    static String decodeString(byte[] encoded) {
+        return RLPElement.fromEncoded(encoded).asString();
+    }
+
+    static byte[] encode(Object o){
+        return RLPElement.readRLPTree(o).getEncoded();
     }
 }

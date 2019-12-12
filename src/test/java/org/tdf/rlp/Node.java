@@ -5,6 +5,9 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
+import static org.tdf.rlp.RLPCodec.decode;
+import static org.tdf.rlp.RLPCodec.encode;
+
 public class Node{
     // RLP annotation specify the order of field in encoded list
     @RLP(0)
@@ -47,11 +50,11 @@ public class Node{
         root.children.get(1).addChildren(Arrays.asList(new Node("6"), new Node("7")));
 
         // encode to byte array
-        byte[] encoded = RLPElement.encode(root);
+        byte[] encoded = encode(root);
         // encode to rlp element
         RLPElement el = RLPElement.readRLPTree(root);
         // decode from byte array
-        Node root2 = RLPDeserializer.deserialize(encoded, Node.class);
+        Node root2 = decode(encoded, Node.class);
         assertTrue(root2.children.get(0).children.get(0).name.equals("4"));
         assertTrue(root2.children.get(0).children.get(1).name.equals("5"));
         assertTrue(root2.children.get(1).children.get(0).name.equals("6"));
@@ -62,8 +65,8 @@ public class Node{
         nested.nested.add(new ArrayList<>());
         nested.nested.get(0).add(new ArrayList<>());
         nested.nested.get(0).get(0).addAll(Arrays.asList("aaa", "bbb"));
-        encoded = RLPElement.encode(nested);
-        nested = RLPDeserializer.deserialize(encoded, Nested.class);
+        encoded = encode(nested);
+        nested = decode(encoded, Nested.class);
         assertTrue(nested.nested.get(0).get(0).get(0).equals("aaa"));
         assertTrue(nested.nested.get(0).get(0).get(1).equals("bbb"));
     }

@@ -3,6 +3,8 @@ package org.tdf.rlp;
 import java.util.HashMap;
 import java.util.Map;
 
+import static org.tdf.rlp.RLPCodec.encode;
+
 public class Main{
     public static class MapEncoderDecoder implements RLPEncoder<Map<String, String>>, RLPDecoder<Map<String, String>> {
         @Override
@@ -44,8 +46,8 @@ public class Main{
         Map<String, String> m = new HashMap<>();
         m.put("a", "1");
         m.put("b", "2");
-        byte[] encoded = RLPElement.encode(new MapWrapper(m));
-        MapWrapper decoded = RLPDeserializer.deserialize(encoded, MapWrapper.class);
+        byte[] encoded = encode(new MapWrapper(m));
+        MapWrapper decoded = RLPCodec.decode(encoded, MapWrapper.class);
         assertTrue(decoded.map.get("a").equals("1"));
     }
 

@@ -15,7 +15,7 @@ import java.util.stream.Stream;
 
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
-import static org.tdf.rlp.RLPElement.*;
+import static org.tdf.rlp.RLPCodec.*;
 import static org.tdf.rlp.RLPItem.NULL;
 import static org.tdf.rlp.RLPItem.encodeElement;
 
@@ -82,35 +82,35 @@ public class RLPTest {
     @Test
     public void test0() {
         byte[] data = RLPSerializer.SERIALIZER.serialize(-1L);
-        assert RLPDeserializer.deserialize(data, Long.class) == -1L;
+        assert RLPCodec.decode(data, Long.class) == -1L;
         data = RLPSerializer.SERIALIZER.serialize(0L);
-        assert RLPDeserializer.deserialize(data, Long.class) == 0;
+        assert RLPCodec.decode(data, Long.class) == 0;
         data = RLPSerializer.SERIALIZER.serialize(Long.MAX_VALUE);
-        assert RLPDeserializer.deserialize(data, Long.class) == Long.MAX_VALUE;
+        assert RLPCodec.decode(data, Long.class) == Long.MAX_VALUE;
         data = RLPSerializer.SERIALIZER.serialize(Long.MIN_VALUE);
-        assert RLPDeserializer.deserialize(data, Long.class) == Long.MIN_VALUE;
+        assert RLPCodec.decode(data, Long.class) == Long.MIN_VALUE;
 
         data = RLPSerializer.SERIALIZER.serialize(Integer.valueOf(0));
-        assert RLPDeserializer.deserialize(data, Integer.class) == 0;
+        assert RLPCodec.decode(data, Integer.class) == 0;
         data = RLPSerializer.SERIALIZER.serialize(Integer.MIN_VALUE);
-        assert RLPDeserializer.deserialize(data, Integer.class) == Integer.MIN_VALUE;
+        assert RLPCodec.decode(data, Integer.class) == Integer.MIN_VALUE;
         data = RLPSerializer.SERIALIZER.serialize(Integer.MAX_VALUE);
-        assert RLPDeserializer.deserialize(data, Integer.class) == Integer.MAX_VALUE;
+        assert RLPCodec.decode(data, Integer.class) == Integer.MAX_VALUE;
         data = RLPSerializer.SERIALIZER.serialize(Integer.valueOf(-1));
-        assert RLPDeserializer.deserialize(data, Integer.class) == -1;
+        assert RLPCodec.decode(data, Integer.class) == -1;
 
         data = RLPSerializer.SERIALIZER.serialize(Short.valueOf((short) 0));
-        assert RLPDeserializer.deserialize(data, Short.class) == 0;
+        assert RLPCodec.decode(data, Short.class) == 0;
         data = RLPSerializer.SERIALIZER.serialize(Short.MIN_VALUE);
-        assert RLPDeserializer.deserialize(data, Short.class) == Short.MIN_VALUE;
+        assert RLPCodec.decode(data, Short.class) == Short.MIN_VALUE;
         data = RLPSerializer.SERIALIZER.serialize(Short.MAX_VALUE);
-        assert RLPDeserializer.deserialize(data, Short.class) == Short.MAX_VALUE;
+        assert RLPCodec.decode(data, Short.class) == Short.MAX_VALUE;
     }
 
     @Test
     public void test1() {
         byte[] data = RLPSerializer.SERIALIZER.serialize(new TestSerializer(Arrays.asList("1", "2", "3")));
-        TestSerializer serializer = RLPDeserializer.deserialize(data, TestSerializer.class);
+        TestSerializer serializer = RLPCodec.decode(data, TestSerializer.class);
         assert serializer.strings.get(0).equals("1");
         assert serializer.strings.get(1).equals("2");
         assert serializer.strings.get(2).equals("3");
@@ -127,7 +127,7 @@ public class RLPTest {
         byte[] encoderesult = RLPSerializer.SERIALIZER.serialize(test);
         assertEquals(expected, HexBytes.encode(encoderesult));
 
-        String[] decodedTest = RLPDeserializer.deserialize(encoderesult, String[].class);
+        String[] decodedTest = RLPCodec.decode(encoderesult, String[].class);
         assertArrayEquals(decodedTest, test);
 
         test = new String[]{"dog", "god", "cat"};
@@ -511,7 +511,7 @@ public class RLPTest {
 
         byte[] encoded = RLPSerializer.SERIALIZER.serialize(root);
         RLPElement el = RLPElement.readRLPTree(root);
-        Node root2 = RLPDeserializer.deserialize(encoded, Node.class);
+        Node root2 = RLPCodec.decode(encoded, Node.class);
         assert root2.children.get(0).children.get(0).name.equals("4");
         assert root2.children.get(0).children.get(1).name.equals("5");
         assert root2.children.get(1).children.get(0).name.equals("6");
@@ -563,7 +563,7 @@ public class RLPTest {
         m.put("a", "1");
         m.put("b", "2");
         byte[] encoded = RLPSerializer.SERIALIZER.serialize(new MapWrapper(m));
-        MapWrapper decoded = RLPDeserializer.deserialize(encoded, MapWrapper.class);
+        MapWrapper decoded = RLPCodec.decode(encoded, MapWrapper.class);
         assert decoded.map.get("a").equals("1");
         byte[] encoded2 = MapEncoderDecoder.CODEC.encode(m).getEncoded();
         Map<String, String> m2 = MapEncoderDecoder.CODEC.decode(RLPElement.fromEncoded(encoded2));
@@ -1245,7 +1245,7 @@ public class RLPTest {
 
         nested.nested.addAll(Arrays.asList("aaa", "bbb"));
         byte[] encoded = RLPSerializer.SERIALIZER.serialize(nested);
-        NoNested noNested = RLPDeserializer.deserialize(encoded, NoNested.class);
+        NoNested noNested = RLPCodec.decode(encoded, NoNested.class);
         assert noNested.nested.get(0).equals("aaa");
         assert noNested.nested.get(1).equals("bbb");
     }
@@ -1257,8 +1257,8 @@ public class RLPTest {
         nested.nested.add(new ArrayList<>());
         nested.nested.get(0).add(new ArrayList<>());
         nested.nested.get(0).get(0).addAll(Arrays.asList("aaa", "bbb"));
-        byte[] encoded = RLPElement.encode(nested);
-        nested = RLPDeserializer.deserialize(encoded, Nested.class);
+        byte[] encoded = RLPCodec.encode(nested);
+        nested = RLPCodec.decode(encoded, Nested.class);
         assert nested.nested.get(0).get(0).get(0).equals("aaa");
         assert nested.nested.get(0).get(0).get(1).equals("bbb");
     }
@@ -1268,7 +1268,7 @@ public class RLPTest {
         RLPList li1 = RLPList.of(RLPItem.fromString("aa"), RLPItem.fromString("bbb"));
         RLPList li2 = RLPList.of(RLPItem.fromString("aa"), RLPItem.fromString("bbb"));
         byte[] encoded = RLPList.of(li1, li2).getEncoded();
-        String[][] strs = RLPDeserializer.deserialize(encoded, String[][].class);
+        String[][] strs = RLPCodec.decode(encoded, String[][].class);
         assert strs[0][0].equals("aa");
         assert strs[0][1].equals("bbb");
         assert strs[1][0].equals("aa");
@@ -1277,25 +1277,25 @@ public class RLPTest {
 
     @Test
     public void testBoolean(){
-        assert !RLPDeserializer.deserialize(NULL, Boolean.class);
-        assert RLPDeserializer.deserialize(RLPItem.fromBoolean(true), Boolean.class);
+        assert !RLPCodec.decode(NULL, Boolean.class);
+        assert RLPCodec.decode(RLPItem.fromBoolean(true), Boolean.class);
         List<RLPItem> elements = Stream.of(1, 1, 1).map(RLPItem::fromInt).collect(Collectors.toList());
         RLPList list = RLPList.fromElements(elements);
-        assert RLPDeserializer.deserializeList(
+        assert RLPCodec.decodeList(
                 list, Boolean.class
         ).stream().allMatch(x -> x);
     }
 
     @Test(expected = RuntimeException.class)
     public void testBooleanFailed(){
-        RLPDeserializer.deserialize(RLPItem.fromInt(2), Boolean.class);
+        RLPCodec.decode(RLPItem.fromInt(2), Boolean.class);
     }
 
     @Test(expected = RuntimeException.class)
     public void testBooleanFailed2(){
         List<RLPItem> elements = Stream.of(1, 2, 3).map(RLPItem::fromInt).collect(Collectors.toList());
         RLPList list = RLPList.fromElements(elements);
-        RLPDeserializer.deserializeList(
+        RLPCodec.decodeList(
                 list, Boolean.class
         );
     }

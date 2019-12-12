@@ -114,51 +114,5 @@ public interface RLPElement {
         }).collect(Collectors.toList()));
     }
 
-    static byte[] encode(Object o){
-        return readRLPTree(o).getEncoded();
-    }
 
-    static byte[] encodeBoolean(boolean b) {
-        return RLPItem.fromBoolean(b).getEncoded();
-    }
-
-    static boolean decodeBoolean(byte[] encoded) {
-        return fromEncoded(encoded).asBoolean();
-    }
-
-    static byte[] encodeByte(byte b) {
-        return RLPItem.fromByte(b).getEncoded();
-    }
-
-    static byte[] encodeShort(short s) {
-        return RLPItem.fromShort(s).getEncoded();
-    }
-
-    static byte[] encodeInt(int n) {
-        return RLPItem.fromInt(n).getEncoded();
-    }
-
-    static byte[] encodeBigInteger(BigInteger bigInteger) {
-        return RLPItem.fromBigInteger(bigInteger).getEncoded();
-    }
-
-    static byte[] encodeString(String s) {
-        return RLPItem.fromString(s).getEncoded();
-    }
-
-    static int decodeInt(byte[] encoded) {
-        return fromEncoded(encoded).asInt();
-    }
-
-    static short decodeShort(byte[] encoded) {
-        return fromEncoded(encoded).asShort();
-    }
-
-    static long decodeLong(byte[] encoded) {
-        return fromEncoded(encoded).asLong();
-    }
-
-    static String decodeString(byte[] encoded) {
-        return fromEncoded(encoded).asString();
-    }
 }
