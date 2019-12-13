@@ -437,12 +437,12 @@ public class RLPTest {
 
             long start2 = System.currentTimeMillis();
             for (int i = 0; i < ITERATIONS; i++) {
-                list = RLPElement.fromEncoded(payload, false).asRLPList();
+                list = RLPElement.fromEncoded(payload, true).asRLPList();
             }
             long end2 = System.currentTimeMillis();
 
-            System.out.println("Result RLPElement.fromEncoded\t: " + (end1 - start1) + "ms and\t " + " bytes for each resulting object list");
-            System.out.println("Result RLPElement.fromEncoded\t: " + (end2 - start2) + "ms and\t " + " bytes for each resulting object list");
+            System.out.println("Result RLPElement.fromEncoded\t: " + (end1 - start1) + "ms and\t " + (payload.length * ITERATIONS) + " bytes for each resulting object list");
+            System.out.println("Result RLPElement.fromEncoded lazy\t: " + (end2 - start2) + "ms and\t " + (payload.length * ITERATIONS) + " bytes for each resulting object list");
         } else {
             System.out.println("Performance test for RLP.decode() disabled");
         }
@@ -1205,7 +1205,7 @@ public class RLPTest {
         System.out.println("decode " + (n) + " bytes in " + (end - start) + " ms");
     }
 
-    private static class Nested{
+    private static class Nested {
         @RLP
         private List<List<List<String>>> nested;
 
@@ -1216,7 +1216,7 @@ public class RLPTest {
     }
 
     @Test
-    public void testNested() throws Exception{
+    public void testNested() throws Exception {
         RLPUtils.Resolved resolved = RLPUtils.resolveFieldType(Nested.class.getDeclaredField("nested"));
         assert resolved.level == 3;
         assert resolved.type == String.class;
@@ -1228,7 +1228,7 @@ public class RLPTest {
         assert resolved.type == String.class;
     }
 
-    private static class NoNested{
+    private static class NoNested {
         @RLP
         private List<String> nested;
 
@@ -1237,7 +1237,7 @@ public class RLPTest {
     }
 
     @Test
-    public void testDecode2(){
+    public void testDecode2() {
         NoNested nested = new NoNested();
         nested.nested = new ArrayList<>();
 
@@ -1249,7 +1249,7 @@ public class RLPTest {
     }
 
     @Test
-    public void testDecode3(){
+    public void testDecode3() {
         Nested nested = new Nested();
         nested.nested = new ArrayList<>();
         nested.nested.add(new ArrayList<>());
@@ -1262,7 +1262,7 @@ public class RLPTest {
     }
 
     @Test
-    public void testNestedString(){
+    public void testNestedString() {
         RLPList li1 = RLPList.of(RLPItem.fromString("aa"), RLPItem.fromString("bbb"));
         RLPList li2 = RLPList.of(RLPItem.fromString("aa"), RLPItem.fromString("bbb"));
         byte[] encoded = RLPList.of(li1, li2).getEncoded();
@@ -1274,7 +1274,7 @@ public class RLPTest {
     }
 
     @Test
-    public void testBoolean(){
+    public void testBoolean() {
         assert !RLPCodec.decode(NULL, Boolean.class);
         assert RLPCodec.decode(RLPItem.fromBoolean(true), Boolean.class);
         List<RLPItem> elements = Stream.of(1, 1, 1).map(RLPItem::fromInt).collect(Collectors.toList());
@@ -1285,12 +1285,12 @@ public class RLPTest {
     }
 
     @Test(expected = RuntimeException.class)
-    public void testBooleanFailed(){
+    public void testBooleanFailed() {
         RLPCodec.decode(RLPItem.fromInt(2), Boolean.class);
     }
 
     @Test(expected = RuntimeException.class)
-    public void testBooleanFailed2(){
+    public void testBooleanFailed2() {
         List<RLPItem> elements = Stream.of(1, 2, 3).map(RLPItem::fromInt).collect(Collectors.toList());
         RLPList list = RLPList.fromElements(elements);
         RLPCodec.decodeList(
@@ -1299,7 +1299,7 @@ public class RLPTest {
     }
 
     @Test
-    public void test(){
+    public void test() {
         assert !NULL.as(boolean.class);
         assert ONE.as(boolean.class);
         assert NULL.asBigInteger().compareTo(BigInteger.ZERO) == 0;
@@ -1313,12 +1313,12 @@ public class RLPTest {
     }
 
     @Test(expected = RuntimeException.class)
-    public void test2(){
+    public void test2() {
         NULL.asRLPList();
     }
 
     @Test
-    public void testLazyParse() throws Exception{
+    public void testLazyParse() throws Exception {
         String expected = "c88363617483646f67";
 
         RLPElement el = RLPElement.fromEncoded(Hex.decodeHex(expected)).asRLPList();
