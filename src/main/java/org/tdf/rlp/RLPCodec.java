@@ -8,8 +8,10 @@ import java.lang.reflect.Field;
 import java.math.BigInteger;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static org.tdf.rlp.RLPConstants.*;
+import static org.tdf.rlp.RLPElement.readRLPTree;
 
 public final class RLPCodec {
 
@@ -18,7 +20,7 @@ public final class RLPCodec {
         return decode(element, clazz);
     }
 
-    static <T> List<T> decodeList(RLPElement element, Class<T> elementType){
+    static <T> List<T> decodeList(RLPElement element, Class<T> elementType) {
         return decodeList(element.asRLPList(), 1, elementType);
     }
 
@@ -51,7 +53,7 @@ public final class RLPCodec {
         if (clazz == RLPElement.class) return (T) element;
         if (clazz == RLPList.class) return (T) element.asRLPList();
         if (clazz == RLPItem.class) return (T) element.asRLPItem();
-        if(clazz == boolean.class || clazz == Boolean.class) return (T) Boolean.valueOf(element.asBoolean());
+        if (clazz == boolean.class || clazz == Boolean.class) return (T) Boolean.valueOf(element.asBoolean());
         RLPDecoder decoder = RLPUtils.getAnnotatedRLPDecoder(clazz);
         if (decoder != null) return (T) decoder.decode(element);
         // non null terminals
@@ -184,8 +186,8 @@ public final class RLPCodec {
         return RLPElement.fromEncoded(encoded).asString();
     }
 
-    public static byte[] encode(Object o){
-        return RLPElement.readRLPTree(o).getEncoded();
+    public static byte[] encode(Object o) {
+        return readRLPTree(o).getEncoded();
     }
 
     // rlp list encode
@@ -276,7 +278,19 @@ public final class RLPCodec {
         return data;
     }
 
-    static RLPElement encodeCollection(Collection col, Comparator ordering){
-        return RLPElement.readRLPTree(col.stream().sorted(ordering).collect(Collectors.toList()));
+    static RLPElement encodeCollection(Collection col, Comparator contentOrdering) {
+        Stream<Object> s = contentOrdering == null ? col.stream() : col.stream().sorted(contentOrdering);
+        return new RLPList(s.map(RLPElement::readRLPTree)
+                .collect(Collectors.toList()));
+    }
+
+    static RLPElement encodeMap(Map m, Comparator keyOrdering) {
+        RLPList list = RLPList.createEmpty(m.size() * 2);
+        Stream<Object> keys = keyOrdering == null ? m.keySet().stream() : m.keySet().stream().sorted(keyOrdering);
+        keys.forEach(x -> {
+            list.add(readRLPTree(x));
+            list.add(readRLPTree(m.get(x)));
+        });
+        return list;
     }
 }
