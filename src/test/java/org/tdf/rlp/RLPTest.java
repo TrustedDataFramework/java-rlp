@@ -431,13 +431,13 @@ public class RLPTest {
 
             long start1 = System.currentTimeMillis();
             for (int i = 0; i < ITERATIONS; i++) {
-                list = RLPElement.fromEncoded(payload).asRLPList();
+                list = RLPElement.fromEncoded(payload, false).asRLPList();
             }
             long end1 = System.currentTimeMillis();
 
             long start2 = System.currentTimeMillis();
             for (int i = 0; i < ITERATIONS; i++) {
-                list = RLPElement.fromEncoded(payload).asRLPList();
+                list = RLPElement.fromEncoded(payload, false).asRLPList();
             }
             long end2 = System.currentTimeMillis();
 
@@ -1200,7 +1200,7 @@ public class RLPTest {
         System.out.println("encode " + (n) + " bytes in " + (end - start) + " ms");
 
         start = System.currentTimeMillis();
-        RLPElement decoded = RLPElement.fromEncoded(encoded);
+        RLPElement decoded = RLPElement.fromEncoded(encoded, false);
         end = System.currentTimeMillis();
         System.out.println("decode " + (n) + " bytes in " + (end - start) + " ms");
     }
@@ -1315,5 +1315,14 @@ public class RLPTest {
     @Test(expected = RuntimeException.class)
     public void test2(){
         NULL.asRLPList();
+    }
+
+    @Test
+    public void testLazyParse() throws Exception{
+        String expected = "c88363617483646f67";
+
+        RLPElement el = RLPElement.fromEncoded(Hex.decodeHex(expected)).asRLPList();
+        assert el.asRLPList().stream().allMatch(x -> x instanceof LazyElement);
+        el.get(0).asString();
     }
 }

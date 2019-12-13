@@ -192,4 +192,19 @@ public final class RLPItem implements RLPElement {
     public boolean isRLPItem() {
         return true;
     }
+
+    @Override
+    public RLPElement get(int index) {
+        throw new RuntimeException("not a rlp list");
+    }
+
+    @Override
+    public boolean add(RLPElement element) {
+        throw new RuntimeException("not a rlp list");
+    }
+
+    @Override
+    public RLPElement set(int index, RLPElement element) {
+        throw new RuntimeException("not a rlp list");
+    }
 }

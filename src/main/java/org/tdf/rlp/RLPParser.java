@@ -21,12 +21,12 @@ final class RLPParser {
 
     private int limit;
 
-    static RLPElement fromEncoded(@NonNull byte[] data) {
+    static RLPElement fromEncoded(@NonNull byte[] data, boolean lazy) {
         RLPParser parser = new RLPParser(data);
         if (parser.estimateSize() != data.length) {
             throw new RuntimeException("invalid encoding");
         }
-        return parser.readElement();
+        return lazy ? parser.readLazy() : parser.readElement();
     }
 
     private RLPParser(byte[] data) {
@@ -58,13 +58,13 @@ final class RLPParser {
         if (prefix < OFFSET_SHORT_LIST) {
             // skip
             return byteArrayToInt(
-                    Arrays.copyOfRange(raw, 1, 1 + prefix - OFFSET_LONG_ITEM)
+                    Arrays.copyOfRange(raw, offset + 1, offset + 1 + prefix - OFFSET_LONG_ITEM)
             ) + 1 + prefix - OFFSET_LONG_ITEM;
         }
         if (prefix <= OFFSET_LONG_LIST) {
             return prefix - OFFSET_SHORT_LIST + 1;
         }
-        return byteArrayToInt(Arrays.copyOfRange(raw, 1, 1 + prefix - OFFSET_LONG_LIST)) + 1 + prefix - OFFSET_LONG_LIST;
+        return byteArrayToInt(Arrays.copyOfRange(raw, offset + 1, offset + 1 + prefix - OFFSET_LONG_LIST)) + 1 + prefix - OFFSET_LONG_LIST;
     }
 
     private int read() {
@@ -88,11 +88,11 @@ final class RLPParser {
     }
 
 
-    private boolean peekIsList() {
+    boolean peekIsList() {
         return peek() >= OFFSET_SHORT_LIST;
     }
 
-    private RLPList readList() {
+    private RLPList readList(boolean lazy) {
         int offset = this.offset;
         int prefix = read();
         RLPList list = RLPList.createEmpty();
@@ -109,16 +109,25 @@ final class RLPParser {
         }
         int limit = parser.limit;
         while (parser.hasRemaining()) {
-            list.add(parser.readElement());
+            list.add(lazy ? parser.readLazyElement() : parser.readElement());
         }
         list.setEncoded(new LazyByteArray(raw, offset, limit));
         return list;
     }
 
 
-    private RLPElement readElement() {
-        if (peekIsList()) return readList();
+    RLPElement readElement() {
+        if (peekIsList()) return readList(false);
         return readItem();
+    }
+
+    RLPElement readLazy() {
+        if (peekIsList()) return readList(true);
+        return readItem();
+    }
+
+    LazyElement readLazyElement() {
+        return new LazyElement(readAsParser(estimateSize()));
     }
 
     private RLPItem readItem() {

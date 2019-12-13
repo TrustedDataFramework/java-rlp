@@ -42,6 +42,12 @@ public interface RLPElement {
 
     long asLong();
 
+    RLPElement get(int index);
+
+    boolean add(RLPElement element);
+
+    RLPElement set(int index, RLPElement element);
+
     BigInteger asBigInteger();
 
     String asString();
@@ -53,7 +59,11 @@ public interface RLPElement {
     }
 
     static RLPElement fromEncoded(byte[] data) {
-        return RLPParser.fromEncoded(data);
+        return fromEncoded(data, true);
+    }
+
+    static RLPElement fromEncoded(byte[] data, boolean lazy) {
+        return RLPParser.fromEncoded(data, lazy);
     }
 
     // convert any object as a rlp tree
