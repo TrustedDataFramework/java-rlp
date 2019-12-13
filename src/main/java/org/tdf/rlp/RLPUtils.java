@@ -68,7 +68,9 @@ final class RLPUtils {
         Class<? extends Comparator> clazz = element.getAnnotation(RLPEncoding.class).keyOrdering();
         if (clazz == RLPEncoding.None.class) return null;
         try {
-            return clazz.newInstance();
+            Constructor<? extends Comparator> con = clazz.getDeclaredConstructor();
+            con.setAccessible(true);
+            return con.newInstance();
         } catch (Exception e) {
             throw new RuntimeException("new instance of " + clazz + " failed " + e.getCause());
         }
