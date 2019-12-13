@@ -3,13 +3,10 @@ package org.tdf.rlp;
 import java.util.HashMap;
 import java.util.Map;
 
-import static org.tdf.rlp.RLPCodec.encode;
-
 public class Main{
     public static class MapEncoderDecoder implements RLPEncoder<Map<String, String>>, RLPDecoder<Map<String, String>> {
         @Override
-        public Map<String, String> decode(RLPElement element) {
-            RLPList list = element.asRLPList();
+        public Map<String, String> decode(RLPElement list) {
             Map<String, String> map = new HashMap<>(list.size() / 2);
             for (int i = 0; i < list.size(); i += 2) {
                 map.put(list.get(i).asString(), list.get(i+1).asString());
@@ -46,7 +43,7 @@ public class Main{
         Map<String, String> m = new HashMap<>();
         m.put("a", "1");
         m.put("b", "2");
-        byte[] encoded = encode(new MapWrapper(m));
+        byte[] encoded = RLPCodec.encode(new MapWrapper(m));
         MapWrapper decoded = RLPCodec.decode(encoded, MapWrapper.class);
         assertTrue(decoded.map.get("a").equals("1"));
     }
