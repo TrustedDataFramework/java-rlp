@@ -161,6 +161,93 @@ public class Main{
 }
 ```
 
+- encoding/decoding of Set/Map
+
+```java
+public class Main{
+
+    private static class ByteArraySetWrapper {
+        @RLP
+        @RLPDecoding(as = TreeSet.class)
+        @RLPEncoding(contentOrdering = BytesComparator.class)
+        private Set<byte[]> bytesSet;
+    }
+
+    private static class BytesComparator implements Comparator<byte[]> {
+        @Override
+        public int compare(byte[] o1, byte[] o2) {
+            return new BigInteger(1, o1).compareTo(new BigInteger(1, o2));
+        }
+    }
+
+    public static class MapWrapper2 {
+        @RLP
+        @RLPDecoding(as = TreeMap.class)
+        @RLPEncoding(keyOrdering = StringComparator.class)
+        public Map<String, Map<String, String>> map = new HashMap<>();
+    }    
+
+    private static class StringComparator implements Comparator<String> {
+        @Override
+        public int compare(String o1, String o2) {
+            return o1.length() - o2.length();
+        }
+    }    
+
+    public static void main(String[] args){
+        ByteArraySetWrapper wrapper =
+                RLPList.of(RLPList.of(RLPItem.fromLong(1), RLPItem.fromLong(2))).as(ByteArraySetWrapper.class);
+        assert wrapper.bytesSet instanceof TreeSet;
+
+        wrapper = new ByteArraySetWrapper();
+        wrapper.bytesSet = new HashSet<>();
+        wrapper.bytesSet.add(new byte[]{1});
+        wrapper.bytesSet.add(new byte[]{2});
+        wrapper.bytesSet.add(new byte[]{3});
+        wrapper.bytesSet.add(new byte[]{4});
+        wrapper.bytesSet.add(new byte[]{5});
+        boolean sorted = true;
+        int i = 0;
+        for (byte[] b : wrapper.bytesSet) {
+            if (new BigInteger(1, b).compareTo(BigInteger.valueOf(i + 1)) != 0) {
+                sorted = false;
+                break;
+            }
+            i++;
+        }
+        assert !sorted;
+        RLPElement el = RLPElement.readRLPTree(wrapper).get(0);
+        for (int j = 0; j < el.size(); j++) {
+            assert new BigInteger(1, el.get(j).asBytes()).compareTo(BigInteger.valueOf(j + 1)) == 0;
+        }
+
+        MapWrapper2 wrapper2 = new MapWrapper2();
+        wrapper2.map.put("1", new HashMap<>());
+        wrapper2.map.put("22", new HashMap<>());
+        wrapper2.map.put("sss", new HashMap<>());
+        wrapper2.map.get("sss").put("aaa", "bbb");
+        hasSorted = true;
+        i = 1;
+        for (String k : wrapper2.map.keySet()) {
+            if (k.length() != i) {
+                hasSorted = false;
+                break;
+            }
+            i++;
+        }
+        assert !hasSorted;
+        byte[] encoded = RLPCodec.encode(wrapper2);
+        el = RLPElement.readRLPTree(wrapper2);
+        for (int j = 0; j < 3; j++) {
+            assert el.get(0).get(j * 2).asString().length() == j + 1;
+        }
+        MapWrapper2 decoded = RLPCodec.decode(encoded, MapWrapper2.class);
+        assert decoded.map instanceof TreeMap;
+        assert decoded.map.get("sss").get("aaa").equals("bbb");        
+    }
+}
+```
+
 Benchmark compare to EthereumJ:
 
 decoding list 10000000 times: 
