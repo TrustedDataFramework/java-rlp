@@ -1325,42 +1325,87 @@ public class RLPTest {
     }
 
     @Test(expected = RuntimeException.class)
-    public void testByteOverFlow(){
+    public void testByteOverFlow() {
         RLPItem.fromLong(0xffL + 1).asByte();
     }
 
     @Test(expected = RuntimeException.class)
-    public void testShortOverFlow(){
+    public void testShortOverFlow() {
         RLPItem.fromLong(0xffffL + 1).asByte();
     }
 
     @Test(expected = RuntimeException.class)
-    public void testIntOverFlow(){
+    public void testIntOverFlow() {
         RLPItem.fromLong(0xffffffffL + 1).asByte();
     }
 
     @Test(expected = RuntimeException.class)
-    public void testItemAsList1(){
+    public void testItemAsList1() {
         NULL.get(0);
     }
 
     @Test(expected = RuntimeException.class)
-    public void testItemAsList2(){
+    public void testItemAsList2() {
         NULL.add(NULL);
     }
 
     @Test(expected = RuntimeException.class)
-    public void testItemAsList3(){
+    public void testItemAsList3() {
         NULL.set(0, NULL);
     }
 
     @Test(expected = RuntimeException.class)
-    public void testItemAsList4(){
+    public void testItemAsList4() {
         NULL.size();
     }
 
     @Test
-    public void testAsByteSuccess(){
+    public void testAsByteSuccess() {
         assert RLPItem.fromLong(0xffL).asByte() == (byte) 0xff;
+    }
+
+    @Test
+    public void testInstanceOf() {
+        ArrayList<Object> li = new ArrayList<>();
+        assert li instanceof Collection;
+    }
+
+    private static class SetWrapper0 {
+        @RLP
+        private Set<String> set = new HashSet<>();
+    }
+
+    private static class StringComparator implements Comparator<String> {
+        @Override
+        public int compare(String o1, String o2) {
+            return o1.length() - o2.length();
+        }
+    }
+
+    private static class SetWrapper1 {
+        @RLP
+        @RLPEncoding(contentOrdering = StringComparator.class)
+        Set<String> set = new HashSet<>();
+    }
+
+
+    @Test
+    public void testEncodeSetSuccess() {
+        SetWrapper1 w1 = new SetWrapper1();
+        List<String> strings = Arrays.asList("1", "22", "333", "4444", "55555");
+        w1.set.addAll(strings);
+        int i = 0;
+        boolean hasSorted = true;
+        for (String s : w1.set) {
+            if (!s.equals(strings.get(i))){
+                hasSorted = false;
+                break;
+            }
+        }
+        assert !hasSorted;
+        RLPElement el = RLPElement.readRLPTree(w1);
+        for(int j = 0; j < strings.size(); j++){
+            assert el.get(0).get(j).asString().equals(strings.get(j));
+        }
     }
 }

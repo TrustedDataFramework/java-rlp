@@ -3,12 +3,10 @@ package org.tdf.rlp;
 import lombok.NonNull;
 
 import java.lang.reflect.Array;
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.math.BigInteger;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static org.tdf.rlp.RLPConstants.*;
@@ -93,17 +91,16 @@ public final class RLPCodec {
         if (clazz == List.class) {
             return (T) element.asRLPList();
         }
-        Object o;
-        try{
-            clazz.getConstructor();
-        }catch (Exception e){
+        T o;
+
+        try {
+            Constructor<T> con = clazz.getDeclaredConstructor();
+            con.setAccessible(true);
+            o = con.newInstance();
+        } catch (Exception e) {
             throw new RuntimeException(clazz + " should has a no arguments constructor");
         }
-        try {
-            o = clazz.newInstance();
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
+
         List<Field> fields = RLPUtils.getRLPFields(clazz);
         if (fields.size() == 0) throw new RuntimeException(clazz + " is not supported not RLP annotation found");
         for (int i = 0; i < fields.size(); i++) {
@@ -139,7 +136,7 @@ public final class RLPCodec {
                 throw new RuntimeException(e);
             }
         }
-        return (T) o;
+        return o;
     }
 
     // rlp primitives encoding/decoding
@@ -277,5 +274,9 @@ public final class RLPCodec {
             copyPos += element.length;
         }
         return data;
+    }
+
+    static RLPElement encodeCollection(Collection col, Comparator ordering){
+        return RLPElement.readRLPTree(col.stream().sorted(ordering).collect(Collectors.toList()));
     }
 }

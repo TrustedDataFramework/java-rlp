@@ -3,9 +3,9 @@ package org.tdf.rlp;
 import java.lang.reflect.Array;
 import java.lang.reflect.Field;
 import java.math.BigInteger;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static org.tdf.rlp.RLPItem.NULL;
 import static org.tdf.rlp.RLPItem.ONE;
@@ -56,7 +56,7 @@ public interface RLPElement {
 
     boolean asBoolean();
 
-    default <T> T as(Class<T> clazz){
+    default <T> T as(Class<T> clazz) {
         return RLPCodec.decode(this, clazz);
     }
 
@@ -71,7 +71,7 @@ public interface RLPElement {
     // convert any object as a rlp tree
     static RLPElement readRLPTree(Object t) {
         if (t == null) return NULL;
-        if(t instanceof Boolean || t.getClass() == boolean.class){
+        if (t instanceof Boolean || t.getClass() == boolean.class) {
             return ((Boolean) t) ? ONE : NULL;
         }
         if (t instanceof RLPElement) return (RLPElement) t;
@@ -111,7 +111,8 @@ public interface RLPElement {
         }
         // peek fields reflection
         List<Field> fields = RLPUtils.getRLPFields(t.getClass());
-        if (fields.size() == 0) throw new RuntimeException(t.getClass() + " is not supported, no @RLP annotation found");
+        if (fields.size() == 0)
+            throw new RuntimeException(t.getClass() + " is not supported, no @RLP annotation found");
         return new RLPList(fields.stream().map(f -> {
             f.setAccessible(true);
             RLPEncoder fieldEncoder = RLPUtils.getAnnotatedRLPEncoder(f);
@@ -119,6 +120,30 @@ public interface RLPElement {
                 try {
                     return fieldEncoder.encode(f.get(t));
                 } catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
+            }
+            Comparator comparator = RLPUtils.getContentOrdering(f);
+            if (Collection.class.isAssignableFrom(f.getType()) && comparator != null) {
+                try {
+                    return RLPCodec.encodeCollection((Collection) f.get(t), comparator);
+                } catch (Exception e) {
+                    throw new RuntimeException("get field " + f + " failed " + e.getCause());
+                }
+            }
+            comparator = RLPUtils.getKeyOrdering(f);
+            if(Map.class.isAssignableFrom(f.getType())){
+                try{
+                    Map m = (Map) f.get(t);
+                    RLPList list = RLPList.createEmpty(m.size() * 2);
+                    Stream s = m.keySet().stream();
+                    if(comparator != null) s = s.sorted(comparator);
+                    s.forEach(x -> {
+                        list.add(readRLPTree(x));
+                        list.add(readRLPTree(m.get(x)));
+                    });
+                    return list;
+                }catch (Exception e){
                     throw new RuntimeException(e);
                 }
             }

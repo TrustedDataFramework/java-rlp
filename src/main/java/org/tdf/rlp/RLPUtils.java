@@ -1,9 +1,6 @@
 package org.tdf.rlp;
 
-import java.lang.reflect.AnnotatedElement;
-import java.lang.reflect.Field;
-import java.lang.reflect.ParameterizedType;
-import java.lang.reflect.Type;
+import java.lang.reflect.*;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
@@ -51,6 +48,33 @@ final class RLPUtils {
         return fields;
     }
 
+    static Comparator getContentOrdering(AnnotatedElement element){
+        if (!element.isAnnotationPresent(RLPEncoding.class)) {
+            return null;
+        }
+        Class<? extends Comparator> clazz = element.getAnnotation(RLPEncoding.class).contentOrdering();
+        if(clazz == RLPEncoding.None.class) return null;
+        try{
+            Constructor<? extends Comparator> con = clazz.getDeclaredConstructor();
+            con.setAccessible(true);
+            return con.newInstance();
+        }catch (Exception e){
+            throw new RuntimeException("new instance of " + clazz + " failed " + e.getMessage());
+        }
+    }
+
+    static Comparator getKeyOrdering(AnnotatedElement element){
+        if (!element.isAnnotationPresent(RLPEncoding.class)) {
+            return null;
+        }
+        Class<? extends Comparator> clazz = element.getAnnotation(RLPEncoding.class).keyOrdering();
+        if(clazz == RLPEncoding.None.class) return null;
+        try{
+            return clazz.newInstance();
+        }catch (Exception e){
+            throw new RuntimeException("new instance of " + clazz + " failed " + e.getCause());
+        }
+    }
 
     static Resolved resolveFieldType(Field f) {
         if (f.getType() != List.class) {
