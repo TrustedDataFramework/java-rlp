@@ -207,4 +207,9 @@ public final class RLPItem implements RLPElement {
     public RLPElement set(int index, RLPElement element) {
         throw new RuntimeException("not a rlp list");
     }
+
+    @Override
+    public int size() {
+        throw new RuntimeException("not a rlp list");
+    }
 }

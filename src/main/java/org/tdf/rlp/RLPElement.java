@@ -42,6 +42,8 @@ public interface RLPElement {
 
     long asLong();
 
+    int size();
+
     RLPElement get(int index);
 
     boolean add(RLPElement element);

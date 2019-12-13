@@ -123,4 +123,10 @@ public class LazyElement implements RLPElement{
         parse();
         return delegate.set(index, element);
     }
+
+    @Override
+    public int size() {
+        parse();
+        return delegate.size();
+    }
 }
