@@ -3,7 +3,7 @@ package org.tdf.rlp;
 import java.util.Arrays;
 
 // reduce byte array copy by lazy loading
-class LazyByteArray {
+final class LazyByteArray {
     private byte[] data;
     private int offset;
     private int limit;

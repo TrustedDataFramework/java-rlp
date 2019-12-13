@@ -8,7 +8,7 @@ import java.util.Arrays;
 
 import static org.tdf.rlp.RLPConstants.*;
 
-class RLPReader {
+final class RLPParser {
     private static int byteArrayToInt(byte[] b) {
         if (b == null || b.length == 0)
             return 0;
@@ -21,30 +21,30 @@ class RLPReader {
 
     private int limit;
 
-    static RLPElement fromEncoded(@NonNull byte[] data) {
-        RLPReader reader = new RLPReader(data);
-        if (reader.estimateSize() != data.length) {
+    static RLPElement fromEncoded(@NonNull byte[] data, boolean lazy) {
+        RLPParser parser = new RLPParser(data);
+        if (parser.estimateSize() != data.length) {
             throw new RuntimeException("invalid encoding");
         }
-        return reader.readElement();
+        return lazy ? parser.readLazy() : parser.readElement();
     }
 
-    private RLPReader(byte[] data) {
+    private RLPParser(byte[] data) {
         this.raw = data;
         this.limit = data.length;
     }
 
-    private RLPReader(byte[] data, int offset, int limit) {
+    private RLPParser(byte[] data, int offset, int limit) {
         this.raw = data;
         this.offset = offset;
         this.limit = limit;
     }
 
-    private RLPReader readAsReader(int length) {
+    private RLPParser readAsParser(int length) {
         if (offset + length > limit) throw new RuntimeException("read overflow");
-        RLPReader reader = new RLPReader(raw, offset, offset + length);
+        RLPParser parser = new RLPParser(raw, offset, offset + length);
         offset += length;
-        return reader;
+        return parser;
     }
 
     private int estimateSize() {
@@ -58,13 +58,13 @@ class RLPReader {
         if (prefix < OFFSET_SHORT_LIST) {
             // skip
             return byteArrayToInt(
-                    Arrays.copyOfRange(raw, 1, 1 + prefix - OFFSET_LONG_ITEM)
+                    Arrays.copyOfRange(raw, offset + 1, offset + 1 + prefix - OFFSET_LONG_ITEM)
             ) + 1 + prefix - OFFSET_LONG_ITEM;
         }
         if (prefix <= OFFSET_LONG_LIST) {
             return prefix - OFFSET_SHORT_LIST + 1;
         }
-        return byteArrayToInt(Arrays.copyOfRange(raw, 1, 1 + prefix - OFFSET_LONG_LIST)) + 1 + prefix - OFFSET_LONG_LIST;
+        return byteArrayToInt(Arrays.copyOfRange(raw, offset + 1, offset + 1 + prefix - OFFSET_LONG_LIST)) + 1 + prefix - OFFSET_LONG_LIST;
     }
 
     private int read() {
@@ -88,37 +88,46 @@ class RLPReader {
     }
 
 
-    private boolean peekIsList() {
+    boolean peekIsList() {
         return peek() >= OFFSET_SHORT_LIST;
     }
 
-    private RLPList readList() {
+    private RLPList readList(boolean lazy) {
         int offset = this.offset;
         int prefix = read();
         RLPList list = RLPList.createEmpty();
-        RLPReader reader;
+        RLPParser parser;
         if (prefix <= OFFSET_LONG_LIST) {
             int len = prefix - OFFSET_SHORT_LIST; // length of length the encoded bytes
             // skip preifx
             if (len == 0) return list;
-            reader = readAsReader(len);
+            parser = readAsParser(len);
         } else {
             int lenlen = prefix - OFFSET_LONG_LIST; // length of length the encoded list
             int lenlist = byteArrayToInt(read(lenlen)); // length of encoded bytes
-            reader = readAsReader(lenlist);
+            parser = readAsParser(lenlist);
         }
-        int limit = reader.limit;
-        while (reader.hasRemaining()) {
-            list.add(reader.readElement());
+        int limit = parser.limit;
+        while (parser.hasRemaining()) {
+            list.add(lazy ? parser.readLazyElement() : parser.readElement());
         }
         list.setEncoded(new LazyByteArray(raw, offset, limit));
         return list;
     }
 
 
-    private RLPElement readElement() {
-        if (peekIsList()) return readList();
+    RLPElement readElement() {
+        if (peekIsList()) return readList(false);
         return readItem();
+    }
+
+    RLPElement readLazy() {
+        if (peekIsList()) return readList(true);
+        return readItem();
+    }
+
+    LazyElement readLazyElement() {
+        return new LazyElement(readAsParser(estimateSize()));
     }
 
     private RLPItem readItem() {

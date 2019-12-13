@@ -6,11 +6,10 @@ import java.util.Map;
 public class Main{
     public static class MapEncoderDecoder implements RLPEncoder<Map<String, String>>, RLPDecoder<Map<String, String>> {
         @Override
-        public Map<String, String> decode(RLPElement element) {
-            RLPList list = element.getAsList();
+        public Map<String, String> decode(RLPElement list) {
             Map<String, String> map = new HashMap<>(list.size() / 2);
             for (int i = 0; i < list.size(); i += 2) {
-                map.put(list.get(i).getAsItem().getString(), list.get(i+1).getAsItem().getString());
+                map.put(list.get(i).asString(), list.get(i+1).asString());
             }
             return map;
         }
@@ -44,8 +43,8 @@ public class Main{
         Map<String, String> m = new HashMap<>();
         m.put("a", "1");
         m.put("b", "2");
-        byte[] encoded = RLPElement.encode(new MapWrapper(m)).getEncoded();
-        MapWrapper decoded = RLPDeserializer.deserialize(encoded, MapWrapper.class);
+        byte[] encoded = RLPCodec.encode(new MapWrapper(m));
+        MapWrapper decoded = RLPCodec.decode(encoded, MapWrapper.class);
         assertTrue(decoded.map.get("a").equals("1"));
     }
 

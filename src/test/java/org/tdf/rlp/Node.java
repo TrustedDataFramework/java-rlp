@@ -47,25 +47,15 @@ public class Node{
         root.children.get(1).addChildren(Arrays.asList(new Node("6"), new Node("7")));
 
         // encode to byte array
-        byte[] encoded = RLPElement.encode(root).getEncoded();
-        // encode to rlp element
-        RLPElement el = RLPElement.encode(root);
+        byte[] encoded = RLPCodec.encode(root);
+        // read as rlp tree
+        RLPElement el = RLPElement.readRLPTree(root);
         // decode from byte array
-        Node root2 = RLPDeserializer.deserialize(encoded, Node.class);
-        assertTrue(root2.children.get(0).children.get(0).name.equals("4"));
-        assertTrue(root2.children.get(0).children.get(1).name.equals("5"));
-        assertTrue(root2.children.get(1).children.get(0).name.equals("6"));
-        assertTrue(root2.children.get(1).children.get(1).name.equals("7"));
-
-        Nested nested = new Nested();
-        nested.nested = new ArrayList<>();
-        nested.nested.add(new ArrayList<>());
-        nested.nested.get(0).add(new ArrayList<>());
-        nested.nested.get(0).get(0).addAll(Arrays.asList("aaa", "bbb"));
-        encoded = RLPElement.encode(nested).getEncoded();
-        nested = RLPDeserializer.deserialize(encoded, Nested.class);
-        assertTrue(nested.nested.get(0).get(0).get(0).equals("aaa"));
-        assertTrue(nested.nested.get(0).get(0).get(1).equals("bbb"));
+        Node root2 = RLPCodec.decode(encoded, Node.class);
+        el = RLPElement.fromEncoded(encoded);
+        // decode from rlp element
+        root2 = el.as(Node.class);
+        root2 = RLPCodec.decode(el, Node.class);
     }
 
     public static void assertTrue(boolean b){

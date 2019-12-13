@@ -1,15 +1,10 @@
 package org.tdf.rlp;
 
-import java.lang.reflect.AnnotatedElement;
-import java.lang.reflect.Field;
-import java.lang.reflect.ParameterizedType;
-import java.lang.reflect.Type;
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.List;
+import java.lang.reflect.*;
+import java.util.*;
 import java.util.stream.Collectors;
 
-class RLPUtils {
+final class RLPUtils {
     static RLPEncoder getAnnotatedRLPEncoder(AnnotatedElement element) {
         if (!element.isAnnotationPresent(RLPEncoding.class)) {
             return null;
@@ -51,41 +46,33 @@ class RLPUtils {
         return fields;
     }
 
-
-    static Resolved resolveFieldType(Field f) {
-        if (f.getType() != List.class) {
-            return new Resolved(0, f.getType());
+    static Comparator getContentOrdering(AnnotatedElement element) {
+        if (!element.isAnnotationPresent(RLPEncoding.class)) {
+            return null;
         }
-        Type generic = f.getGenericType();
-        if (!(generic instanceof ParameterizedType)) {
-            return new Resolved(1, RLPElement.class);
+        Class<? extends Comparator> clazz = element.getAnnotation(RLPEncoding.class).contentOrdering();
+        if (clazz == RLPEncoding.None.class) return null;
+        try {
+            Constructor<? extends Comparator> con = clazz.getDeclaredConstructor();
+            con.setAccessible(true);
+            return con.newInstance();
+        } catch (Exception e) {
+            throw new RuntimeException("new instance of " + clazz + " failed " + e.getMessage());
         }
-        return resolve((ParameterizedType) generic, new Resolved(1, null));
     }
 
-    private static Resolved resolve(ParameterizedType type, Resolved resolved) {
-        Type[] types = type.getActualTypeArguments();
-        Type t = types[0];
-        if (t instanceof Class) {
-            resolved.type = (Class) t;
-            return resolved;
+    static Comparator getKeyOrdering(AnnotatedElement element) {
+        if (!element.isAnnotationPresent(RLPEncoding.class)) {
+            return null;
         }
-        // type is nested;
-        ParameterizedType nested = (ParameterizedType) t;
-        resolved.level += 1;
-        return resolve(nested, resolved);
-    }
-
-    static class Resolved {
-        int level;
-        Class type;
-
-        public Resolved() {
-        }
-
-        public Resolved(int level, Class type) {
-            this.level = level;
-            this.type = type;
+        Class<? extends Comparator> clazz = element.getAnnotation(RLPEncoding.class).keyOrdering();
+        if (clazz == RLPEncoding.None.class) return null;
+        try {
+            Constructor<? extends Comparator> con = clazz.getDeclaredConstructor();
+            con.setAccessible(true);
+            return con.newInstance();
+        } catch (Exception e) {
+            throw new RuntimeException("new instance of " + clazz + " failed " + e.getCause());
         }
     }
 }

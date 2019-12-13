@@ -1,22 +1,19 @@
 package org.tdf.rlp;
 
-import lombok.NonNull;
-
+import java.math.BigInteger;
 import java.util.*;
 import java.util.function.UnaryOperator;
 import java.util.stream.Collectors;
 
-import static org.tdf.rlp.RLPConstants.*;
-
 public final class RLPList implements RLPElement, List<RLPElement> {
-    static byte[] EMPTY_ENCODED_LIST = encodeList(new ArrayList<>());
+    static byte[] EMPTY_ENCODED_LIST = RLPCodec.encodeElements(new ArrayList<>());
 
     public static RLPList of(RLPElement... elements) {
         return new RLPList(Arrays.asList(elements));
     }
 
     public static RLPList fromElements(Collection<? extends RLPElement> elements) {
-        return new RLPList(elements.stream().collect(Collectors.toList()));
+        return new RLPList(new ArrayList<>(elements));
     }
 
     public static RLPList createEmpty() {
@@ -47,29 +44,29 @@ public final class RLPList implements RLPElement, List<RLPElement> {
     }
 
     @Override
-    public boolean isList() {
+    public boolean isRLPList() {
         return true;
     }
 
     @Override
-    public RLPList getAsList() {
+    public RLPList asRLPList() {
         return this;
     }
 
     @Override
-    public RLPItem getAsItem() {
+    public RLPItem asRLPItem() {
         throw new RuntimeException("not a rlp item");
     }
 
     @Override
     public byte[] getEncoded() {
-        if(size() == 0) return EMPTY_ENCODED_LIST;
-        if(encoded != null) return encoded.get();
+        if (size() == 0) return EMPTY_ENCODED_LIST;
+        if (encoded != null) return encoded.get();
         encoded = new LazyByteArray(
-                 encodeList(
-                         stream().map(RLPElement::getEncoded)
-                                 .collect(Collectors.toList())
-                 )
+                RLPCodec.encodeElements(
+                        stream().map(RLPElement::getEncoded)
+                                .collect(Collectors.toList())
+                )
         );
         return encoded.get();
     }
@@ -79,46 +76,6 @@ public final class RLPList implements RLPElement, List<RLPElement> {
         return false;
     }
 
-    public static byte[] encodeList(@NonNull Collection<byte[]> elements) {
-        int totalLength = 0;
-        for (byte[] element1 : elements) {
-            totalLength += element1.length;
-        }
-
-        byte[] data;
-        int copyPos;
-        if (totalLength < SIZE_THRESHOLD) {
-
-            data = new byte[1 + totalLength];
-            data[0] = (byte) (OFFSET_SHORT_LIST + totalLength);
-            copyPos = 1;
-        } else {
-            // length of length = BX
-            // prefix = [BX, [length]]
-            int tmpLength = totalLength;
-            byte byteNum = 0;
-            while (tmpLength != 0) {
-                ++byteNum;
-                tmpLength = tmpLength >> 8;
-            }
-            tmpLength = totalLength;
-            byte[] lenBytes = new byte[byteNum];
-            for (int i = 0; i < byteNum; ++i) {
-                lenBytes[byteNum - 1 - i] = (byte) ((tmpLength >> (8 * i)) & 0xFF);
-            }
-            // first byte = F7 + bytes.length
-            data = new byte[1 + lenBytes.length + totalLength];
-            data[0] = (byte) (OFFSET_LONG_LIST + byteNum);
-            System.arraycopy(lenBytes, 0, data, 1, lenBytes.length);
-
-            copyPos = lenBytes.length + 1;
-        }
-        for (byte[] element : elements) {
-            System.arraycopy(element, 0, data, copyPos, element.length);
-            copyPos += element.length;
-        }
-        return data;
-    }
 
     @Override
     public int size() {
@@ -276,5 +233,50 @@ public final class RLPList implements RLPElement, List<RLPElement> {
     @Override
     public Spliterator<RLPElement> spliterator() {
         return elements.spliterator();
+    }
+
+    @Override
+    public boolean isRLPItem() {
+        return false;
+    }
+
+    @Override
+    public byte[] asBytes() {
+        throw new RuntimeException("not a rlp item");
+    }
+
+    @Override
+    public byte asByte() {
+        throw new RuntimeException("not a rlp item");
+    }
+
+    @Override
+    public short asShort() {
+        throw new RuntimeException("not a rlp item");
+    }
+
+    @Override
+    public long asLong() {
+        throw new RuntimeException("not a rlp item");
+    }
+
+    @Override
+    public BigInteger asBigInteger() {
+        throw new RuntimeException("not a rlp item");
+    }
+
+    @Override
+    public String asString() {
+        throw new RuntimeException("not a rlp item");
+    }
+
+    @Override
+    public boolean asBoolean() {
+        throw new RuntimeException("not a rlp item");
+    }
+
+    @Override
+    public int asInt() {
+        throw new RuntimeException("not a rlp item");
     }
 }

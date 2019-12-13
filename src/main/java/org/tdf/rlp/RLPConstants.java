@@ -1,13 +1,13 @@
 package org.tdf.rlp;
 
-public class RLPConstants {
+public final class RLPConstants {
     /**
      * [0x80]
      * If a string is 0-55 bytes long, the RLP encoding consists of a single
      * byte with value 0x80 plus the length of the string followed by the
      * string. The range of the first byte is thus [0x80, 0xb7].
      */
-    static final int OFFSET_SHORT_ITEM = 0x80;
+    public static final int OFFSET_SHORT_ITEM = 0x80;
 
     /**
      * Reason for threshold according to Vitalik Buterin:
@@ -18,7 +18,7 @@ public class RLPConstants {
      * - so 56 and 2^64 space seems like the right place to put the cutoff
      * - also, that's where Bitcoin's varint does the cutof
      */
-    static final int SIZE_THRESHOLD = 56;
+    public static final int SIZE_THRESHOLD = 56;
 
     /**
      * [0xb7]
@@ -29,7 +29,7 @@ public class RLPConstants {
      * \xb9\x04\x00 followed by the string. The range of the first byte is thus
      * [0xb8, 0xbf].
      */
-    static final int OFFSET_LONG_ITEM = 0xb7;
+    public static final int OFFSET_LONG_ITEM = 0xb7;
 
     /**
      * [0xc0]
@@ -39,7 +39,7 @@ public class RLPConstants {
      * of the RLP encodings of the items. The range of the first byte is thus
      * [0xc0, 0xf7].
      */
-    static final int OFFSET_SHORT_LIST = 0xc0;
+    public static final int OFFSET_SHORT_LIST = 0xc0;
 
     /**
      * [0xf7]
@@ -49,5 +49,5 @@ public class RLPConstants {
      * followed by the concatenation of the RLP encodings of the items. The
      * range of the first byte is thus [0xf8, 0xff].
      */
-    static final int OFFSET_LONG_LIST = 0xf7;
+    public static final int OFFSET_LONG_LIST = 0xf7;
 }
