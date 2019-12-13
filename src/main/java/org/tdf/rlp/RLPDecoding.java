@@ -11,5 +11,4 @@ import java.util.*;
 public @interface RLPDecoding {
     Class<? extends RLPDecoder> value() default RLPDecoder.None.class;
     Class<?> as() default Void.class;
-
 }

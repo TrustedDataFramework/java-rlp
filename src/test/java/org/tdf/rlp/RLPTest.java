@@ -1413,13 +1413,31 @@ public class RLPTest {
         public List<Map<String, Set<HashMap<String, String>>>> sss;
         public Optional<String> ccc;
         public String vvv;
+        public List li;
     }
 
     @Test
     public void testContainer() throws Exception{
-        RLPUtils.Container con = RLPUtils.resolveContainer(Con.class.getField("sss").getGenericType());
-        RLPUtils.Container con2 = RLPUtils.resolveContainer(Con.class.getField("ccc").getGenericType());
-        RLPUtils.Container con3 = RLPUtils.resolveContainer(Con.class.getField("vvv").getGenericType());
+        RLPUtils.Container con = RLPUtils.resolveContainerofGeneric(Con.class.getField("sss").getGenericType());
+        RLPUtils.Container con2 = RLPUtils.resolveContainerofGeneric(Con.class.getField("ccc").getGenericType());
+        RLPUtils.Container con3 = RLPUtils.resolveContainerofGeneric(Con.class.getField("vvv").getGenericType());
+        RLPUtils.Container con4 = RLPUtils.resolveContainerofGeneric(Con.class.getField("li").getGenericType());
+    }
 
+    public static class MapWrapper2{
+        @RLP
+        @RLPDecoding(as = TreeMap.class)
+        public Map<String, Map<String, String>> map = new HashMap<>();
+    }
+
+    @Test
+    public void  testMapWrapper2(){
+        MapWrapper2 wrapper2 = new MapWrapper2();
+        wrapper2.map.put("sss", new HashMap<>());
+        wrapper2.map.get("sss").put("aaa", "bbb");
+        byte[] encoded = RLPCodec.encode(wrapper2);
+        MapWrapper2 decoded = RLPCodec.decode(encoded, MapWrapper2.class);
+        assert decoded.map instanceof TreeMap;
+        assert decoded.map.get("sss").get("aaa").equals("bbb");
     }
 }

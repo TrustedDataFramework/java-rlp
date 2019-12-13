@@ -46,30 +46,30 @@ final class RLPUtils {
         return fields;
     }
 
-    static Comparator getContentOrdering(AnnotatedElement element){
+    static Comparator getContentOrdering(AnnotatedElement element) {
         if (!element.isAnnotationPresent(RLPEncoding.class)) {
             return null;
         }
         Class<? extends Comparator> clazz = element.getAnnotation(RLPEncoding.class).contentOrdering();
-        if(clazz == RLPEncoding.None.class) return null;
-        try{
+        if (clazz == RLPEncoding.None.class) return null;
+        try {
             Constructor<? extends Comparator> con = clazz.getDeclaredConstructor();
             con.setAccessible(true);
             return con.newInstance();
-        }catch (Exception e){
+        } catch (Exception e) {
             throw new RuntimeException("new instance of " + clazz + " failed " + e.getMessage());
         }
     }
 
-    static Comparator getKeyOrdering(AnnotatedElement element){
+    static Comparator getKeyOrdering(AnnotatedElement element) {
         if (!element.isAnnotationPresent(RLPEncoding.class)) {
             return null;
         }
         Class<? extends Comparator> clazz = element.getAnnotation(RLPEncoding.class).keyOrdering();
-        if(clazz == RLPEncoding.None.class) return null;
-        try{
+        if (clazz == RLPEncoding.None.class) return null;
+        try {
             return clazz.newInstance();
-        }catch (Exception e){
+        } catch (Exception e) {
             throw new RuntimeException("new instance of " + clazz + " failed " + e.getCause());
         }
     }
@@ -111,22 +111,26 @@ final class RLPUtils {
         }
     }
 
-    enum ContainerType{
+    enum ContainerType {
         RAW,
         COLLECTION,
         MAP
     }
 
-    interface Container{
+    interface Container {
         ContainerType getContainerType();
+
         Class<?> asRawType();
+
         CollectionContainer asCollectionContainer();
+
         MapContainer asMapContainer();
     }
 
-    static class Raw implements Container{
+    static class Raw implements Container {
         Class<?> rawType;
-        public ContainerType getContainerType(){
+
+        public ContainerType getContainerType() {
             return ContainerType.RAW;
         }
 
@@ -142,13 +146,21 @@ final class RLPUtils {
 
         @Override
         public MapContainer asMapContainer() {
-            throw new RuntimeException("not a map container");        }
+            throw new RuntimeException("not a map container");
+        }
+
+        public Raw() {
+        }
+
+        Raw(Class<?> rawType) {
+            this.rawType = rawType;
+        }
     }
 
-    static class CollectionContainer implements Container{
+    static class CollectionContainer implements Container {
         Class<? extends Collection> collectionType;
 
-        public ContainerType getContainerType(){
+        public ContainerType getContainerType() {
             return ContainerType.COLLECTION;
         }
 
@@ -170,10 +182,10 @@ final class RLPUtils {
         }
     }
 
-    static class MapContainer implements Container{
+    static class MapContainer implements Container {
         Class<? extends Map> mapType;
 
-        public ContainerType getContainerType(){
+        public ContainerType getContainerType() {
             return ContainerType.MAP;
         }
 
@@ -196,29 +208,64 @@ final class RLPUtils {
         }
     }
 
-    static Container resolveContainer(Type type){
-        if(!(type instanceof ParameterizedType)){
-            Raw raw = new Raw();
-            raw.rawType = (Class<?>) type;
-            return raw;
+    static Container resolveField(Field field) {
+        Container container = resolveContainerofGeneric(field.getGenericType());
+        Class clazz = null;
+        if (field.isAnnotationPresent(RLPDecoding.class)) {
+            clazz = field.getAnnotation(RLPDecoding.class).as();
         }
-        ParameterizedType parameterizedType = (ParameterizedType) type;
-        Class clazz = (Class) parameterizedType.getRawType();
+
+        if(clazz == null || clazz == Void.class) return container;
+        if(container.getContainerType() == ContainerType.RAW)
+            throw new RuntimeException("@RLPDecoding.as is used on collection or map type");
+        if(!field.getType().isAssignableFrom(clazz))
+            throw new RuntimeException("cannot assign " + clazz + " as " + field.getType());
+        if(container.getContainerType() == ContainerType.COLLECTION){
+            container.asCollectionContainer().collectionType = clazz;
+        }
+        if(container.getContainerType() == ContainerType.MAP){
+            container.asMapContainer().mapType = clazz;
+        }
+        return container;
+    }
+
+    static Container resolveContainerOfNoGeneric(Class clazz){
         if(Collection.class.isAssignableFrom(clazz)){
             CollectionContainer con = new CollectionContainer();
-            con.contentType = resolveContainer(parameterizedType.getActualTypeArguments()[0]);
+            con.contentType = new Raw(RLPElement.class);
             con.collectionType = clazz;
             return con;
         }
         if(Map.class.isAssignableFrom(clazz)){
             MapContainer con = new MapContainer();
-            con.keyType = resolveContainer(parameterizedType.getActualTypeArguments()[0]);
-            con.valueType = resolveContainer(parameterizedType.getActualTypeArguments()[1]);
+            con.keyType = new Raw(RLPElement.class);
+            con.valueType = new Raw(RLPElement.class);
             con.mapType = clazz;
             return con;
         }
-        Raw raw = new Raw();
-        raw.rawType = clazz;
-        return raw;
+        return new Raw(clazz);
+    }
+
+    static Container resolveContainerofGeneric(Type type) {
+        if (!(type instanceof ParameterizedType)) {
+            Class clazz = (Class<?>) type;
+            return resolveContainerOfNoGeneric(clazz);
+        }
+        ParameterizedType parameterizedType = (ParameterizedType) type;
+        Class clazz = (Class) parameterizedType.getRawType();
+        if (Collection.class.isAssignableFrom(clazz)) {
+            CollectionContainer con = new CollectionContainer();
+            con.contentType = resolveContainerofGeneric(parameterizedType.getActualTypeArguments()[0]);
+            con.collectionType = clazz;
+            return con;
+        }
+        if (Map.class.isAssignableFrom(clazz)) {
+            MapContainer con = new MapContainer();
+            con.keyType = resolveContainerofGeneric(parameterizedType.getActualTypeArguments()[0]);
+            con.valueType = resolveContainerofGeneric(parameterizedType.getActualTypeArguments()[1]);
+            con.mapType = clazz;
+            return con;
+        }
+        return resolveContainerOfNoGeneric(clazz);
     }
 }

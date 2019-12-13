@@ -88,8 +88,35 @@ public final class RLPCodec {
             return (T) res;
         }
         // cannot determine generic type at runtime
-        if (clazz == List.class) {
+        if (clazz == List.class || clazz == Collection.class) {
             return (T) element.asRLPList();
+        }
+        if (clazz == Set.class || clazz == HashSet.class) {
+            return (T) new HashSet(element.asRLPList());
+        }
+        if (clazz == TreeSet.class) {
+            return (T) new TreeSet(element.asRLPList());
+        }
+        if (clazz == Map.class || clazz == HashMap.class) {
+            HashMap m = new HashMap(element.size() / 2);
+            for (int i = 0; i < element.size(); i += 2) {
+                m.put(element.get(i), element.get(i + 1));
+            }
+            return (T) m;
+        }
+        if (clazz == TreeMap.class) {
+            TreeMap m = new TreeMap();
+            for (int i = 0; i < element.size(); i += 2) {
+                m.put(element.get(i), element.get(i + 1));
+            }
+            return (T) m;
+        }
+        if(clazz == Queue.class || clazz == LinkedList.class){
+            LinkedList list = new LinkedList(element.asRLPList());
+            return (T) list;
+        }
+        if(clazz == Deque.class || clazz == ArrayDeque.class){
+            return (T) new ArrayDeque<>(element.asRLPList());
         }
         T o;
 
@@ -117,21 +144,12 @@ public final class RLPCodec {
                 continue;
             }
 
-            if (!f.getType().equals(List.class)) {
-                try {
-                    f.set(o, decode(el, f.getType()));
-                } catch (Exception e) {
-                    throw new RuntimeException(e);
-                }
-                continue;
-            }
-
             try {
                 if (el.isNull()) {
                     continue;
                 }
-                RLPUtils.Resolved resolved = RLPUtils.resolveFieldType(f);
-                f.set(o, decodeList(el.asRLPList(), resolved.level, resolved.type));
+                RLPUtils.Container container = RLPUtils.resolveField(f);
+                f.set(o, decodeContainer(el, container));
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
@@ -300,7 +318,7 @@ public final class RLPCodec {
                 try {
                     RLPUtils.CollectionContainer collectionContainer = container.asCollectionContainer();
                     Collection res = (Collection) getDefaultImpl(collectionContainer.collectionType).newInstance();
-                    for(int i = 0; i < element.size(); i++){
+                    for (int i = 0; i < element.size(); i++) {
                         res.add(decodeContainer(element.get(i), collectionContainer.contentType));
                     }
                     return res;
@@ -312,10 +330,10 @@ public final class RLPCodec {
                 try {
                     RLPUtils.MapContainer mapContainer = container.asMapContainer();
                     Map res = (Map) getDefaultImpl(mapContainer.mapType).newInstance();
-                    for(int i = 0; i < element.size(); i+= 2){
+                    for (int i = 0; i < element.size(); i += 2) {
                         res.put(
                                 decodeContainer(element.get(i), mapContainer.keyType),
-                                decodeContainer(element.get(i+1), mapContainer.valueType)
+                                decodeContainer(element.get(i + 1), mapContainer.valueType)
                         );
                     }
                     return res;
@@ -342,7 +360,7 @@ public final class RLPCodec {
         if (clazz == Deque.class) {
             return ArrayDeque.class;
         }
-        if(clazz == Map.class){
+        if (clazz == Map.class) {
             return HashMap.class;
         }
         if (clazz.isInterface() || Modifier.isAbstract(clazz.getModifiers()))
