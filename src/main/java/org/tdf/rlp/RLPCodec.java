@@ -8,43 +8,14 @@ import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static org.tdf.rlp.Container.resolveField;
 import static org.tdf.rlp.RLPConstants.*;
 import static org.tdf.rlp.RLPElement.readRLPTree;
 
 public final class RLPCodec {
-
     public static <T> T decode(byte[] data, Class<T> clazz) {
         RLPElement element = RLPElement.fromEncoded(data);
         return decode(element, clazz);
-    }
-
-    static <T> List<T> decodeList(RLPElement element, Class<T> elementType) {
-        return decodeList(element.asRLPList(), 1, elementType);
-    }
-
-    static <T> List<T> decodeList(byte[] data, Class<T> elementType) {
-        RLPElement element = RLPElement.fromEncoded(data);
-        return decodeList(element.asRLPList(), 1, elementType);
-    }
-
-    private static List decodeList(RLPList list, int level, Class<?> elementType) {
-        if (level == 0) throw new RuntimeException("level should be positive");
-        if (level > 1) {
-            List res = new ArrayList(list.size());
-            for (int i = 0; i < list.size(); i++) {
-                res.add(decodeList(list.get(i).asRLPList(), level - 1, elementType));
-            }
-            return res;
-        }
-        if (elementType == RLPElement.class) return list;
-        if (elementType == RLPItem.class) {
-            return list.stream().map(x -> x.asRLPItem()).collect(Collectors.toList());
-        }
-        List res = new ArrayList<>(list.size());
-        for (int i = 0; i < list.size(); i++) {
-            res.add(decode(list.get(i), elementType));
-        }
-        return res;
     }
 
     public static <T> T decode(RLPElement element, Class<T> clazz) {
@@ -148,7 +119,7 @@ public final class RLPCodec {
                 if (el.isNull()) {
                     continue;
                 }
-                RLPUtils.Container container = RLPUtils.resolveField(f);
+                Container container = resolveField(f);
                 f.set(o, decodeContainer(el, container));
             } catch (Exception e) {
                 throw new RuntimeException(e);
@@ -310,13 +281,13 @@ public final class RLPCodec {
         return list;
     }
 
-    static Object decodeContainer(RLPElement element, RLPUtils.Container container) {
+    static Object decodeContainer(RLPElement element, Container container) {
         switch (container.getContainerType()) {
             case RAW:
                 return decode(element, container.asRawType());
             case COLLECTION: {
                 try {
-                    RLPUtils.CollectionContainer collectionContainer = container.asCollectionContainer();
+                    CollectionContainer collectionContainer = container.asCollectionContainer();
                     Collection res = (Collection) getDefaultImpl(collectionContainer.collectionType).newInstance();
                     for (int i = 0; i < element.size(); i++) {
                         res.add(decodeContainer(element.get(i), collectionContainer.contentType));
@@ -328,7 +299,7 @@ public final class RLPCodec {
             }
             case MAP: {
                 try {
-                    RLPUtils.MapContainer mapContainer = container.asMapContainer();
+                    MapContainer mapContainer = container.asMapContainer();
                     Map res = (Map) getDefaultImpl(mapContainer.mapType).newInstance();
                     for (int i = 0; i < element.size(); i += 2) {
                         res.put(

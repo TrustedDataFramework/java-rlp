@@ -13,6 +13,7 @@ import java.util.stream.Stream;
 
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
+import static org.tdf.rlp.Container.resolveContainerofGeneric;
 import static org.tdf.rlp.RLPCodec.*;
 import static org.tdf.rlp.RLPItem.NULL;
 import static org.tdf.rlp.RLPItem.ONE;
@@ -1213,19 +1214,6 @@ public class RLPTest {
         }
     }
 
-    @Test
-    public void testNested() throws Exception {
-        RLPUtils.Resolved resolved = RLPUtils.resolveFieldType(Nested.class.getDeclaredField("nested"));
-        assert resolved.level == 3;
-        assert resolved.type == String.class;
-        resolved = RLPUtils.resolveFieldType(Nested.class.getDeclaredField("hello"));
-        assert resolved.level == 0;
-        assert resolved.type == String.class;
-        resolved = RLPUtils.resolveFieldType(NoNested.class.getDeclaredField("nested"));
-        assert resolved.level == 1;
-        assert resolved.type == String.class;
-    }
-
     private static class NoNested {
         @RLP
         private List<String> nested;
@@ -1277,9 +1265,10 @@ public class RLPTest {
         assert RLPCodec.decode(RLPItem.fromBoolean(true), Boolean.class);
         List<RLPItem> elements = Stream.of(1, 1, 1).map(RLPItem::fromInt).collect(Collectors.toList());
         RLPList list = RLPList.fromElements(elements);
-        assert RLPCodec.decodeList(
-                list, Boolean.class
-        ).stream().allMatch(x -> x);
+        for (boolean b : RLPCodec.decode(
+                list, boolean[].class
+        ))
+            assert b;
     }
 
     @Test(expected = RuntimeException.class)
@@ -1291,8 +1280,8 @@ public class RLPTest {
     public void testBooleanFailed2() {
         List<RLPItem> elements = Stream.of(1, 2, 3).map(RLPItem::fromInt).collect(Collectors.toList());
         RLPList list = RLPList.fromElements(elements);
-        RLPCodec.decodeList(
-                list, Boolean.class
+        RLPCodec.decode(
+                list, boolean[].class
         );
     }
 
@@ -1397,19 +1386,19 @@ public class RLPTest {
         int i = 0;
         boolean hasSorted = true;
         for (String s : w1.set) {
-            if (!s.equals(strings.get(i))){
+            if (!s.equals(strings.get(i))) {
                 hasSorted = false;
                 break;
             }
         }
         assert !hasSorted;
         RLPElement el = RLPElement.readRLPTree(w1);
-        for(int j = 0; j < strings.size(); j++){
+        for (int j = 0; j < strings.size(); j++) {
             assert el.get(0).get(j).asString().equals(strings.get(j));
         }
     }
 
-    public static class Con{
+    public static class Con {
         public List<Map<String, Set<HashMap<String, String>>>> sss;
         public Optional<String> ccc;
         public String vvv;
@@ -1417,21 +1406,21 @@ public class RLPTest {
     }
 
     @Test
-    public void testContainer() throws Exception{
-        RLPUtils.Container con = RLPUtils.resolveContainerofGeneric(Con.class.getField("sss").getGenericType());
-        RLPUtils.Container con2 = RLPUtils.resolveContainerofGeneric(Con.class.getField("ccc").getGenericType());
-        RLPUtils.Container con3 = RLPUtils.resolveContainerofGeneric(Con.class.getField("vvv").getGenericType());
-        RLPUtils.Container con4 = RLPUtils.resolveContainerofGeneric(Con.class.getField("li").getGenericType());
+    public void testContainer() throws Exception {
+        Container con = resolveContainerofGeneric(Con.class.getField("sss").getGenericType());
+        Container con2 = resolveContainerofGeneric(Con.class.getField("ccc").getGenericType());
+        Container con3 = resolveContainerofGeneric(Con.class.getField("vvv").getGenericType());
+        Container con4 = resolveContainerofGeneric(Con.class.getField("li").getGenericType());
     }
 
-    public static class MapWrapper2{
+    public static class MapWrapper2 {
         @RLP
         @RLPDecoding(as = TreeMap.class)
         public Map<String, Map<String, String>> map = new HashMap<>();
     }
 
     @Test
-    public void  testMapWrapper2(){
+    public void testMapWrapper2() {
         MapWrapper2 wrapper2 = new MapWrapper2();
         wrapper2.map.put("sss", new HashMap<>());
         wrapper2.map.get("sss").put("aaa", "bbb");
