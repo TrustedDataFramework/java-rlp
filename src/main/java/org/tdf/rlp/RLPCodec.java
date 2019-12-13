@@ -2,9 +2,7 @@ package org.tdf.rlp;
 
 import lombok.NonNull;
 
-import java.lang.reflect.Array;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.Field;
+import java.lang.reflect.*;
 import java.math.BigInteger;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -292,5 +290,63 @@ public final class RLPCodec {
             list.add(readRLPTree(m.get(x)));
         });
         return list;
+    }
+
+    static Object decodeContainer(RLPElement element, RLPUtils.Container container) {
+        switch (container.getContainerType()) {
+            case RAW:
+                return decode(element, container.asRawType());
+            case COLLECTION: {
+                try {
+                    RLPUtils.CollectionContainer collectionContainer = container.asCollectionContainer();
+                    Collection res = (Collection) getDefaultImpl(collectionContainer.collectionType).newInstance();
+                    for(int i = 0; i < element.size(); i++){
+                        res.add(decodeContainer(element.get(i), collectionContainer.contentType));
+                    }
+                    return res;
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
+            }
+            case MAP: {
+                try {
+                    RLPUtils.MapContainer mapContainer = container.asMapContainer();
+                    Map res = (Map) getDefaultImpl(mapContainer.mapType).newInstance();
+                    for(int i = 0; i < element.size(); i+= 2){
+                        res.put(
+                                decodeContainer(element.get(i), mapContainer.keyType),
+                                decodeContainer(element.get(i+1), mapContainer.valueType)
+                        );
+                    }
+                    return res;
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
+            }
+        }
+        throw new RuntimeException("unreachable");
+    }
+
+    private static Class getDefaultImpl(Class clazz) {
+        if (clazz == Collection.class
+                || clazz == List.class
+        ) {
+            return ArrayList.class;
+        }
+        if (clazz == Set.class) {
+            return HashSet.class;
+        }
+        if (clazz == Queue.class) {
+            return LinkedList.class;
+        }
+        if (clazz == Deque.class) {
+            return ArrayDeque.class;
+        }
+        if(clazz == Map.class){
+            return HashMap.class;
+        }
+        if (clazz.isInterface() || Modifier.isAbstract(clazz.getModifiers()))
+            throw new RuntimeException("cannot new instance of " + clazz);
+        return clazz;
     }
 }

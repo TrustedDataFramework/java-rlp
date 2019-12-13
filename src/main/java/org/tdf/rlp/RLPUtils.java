@@ -1,9 +1,7 @@
 package org.tdf.rlp;
 
 import java.lang.reflect.*;
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 final class RLPUtils {
@@ -111,5 +109,116 @@ final class RLPUtils {
             this.level = level;
             this.type = type;
         }
+    }
+
+    enum ContainerType{
+        RAW,
+        COLLECTION,
+        MAP
+    }
+
+    interface Container{
+        ContainerType getContainerType();
+        Class<?> asRawType();
+        CollectionContainer asCollectionContainer();
+        MapContainer asMapContainer();
+    }
+
+    static class Raw implements Container{
+        Class<?> rawType;
+        public ContainerType getContainerType(){
+            return ContainerType.RAW;
+        }
+
+        @Override
+        public Class<?> asRawType() {
+            return rawType;
+        }
+
+        @Override
+        public CollectionContainer asCollectionContainer() {
+            throw new RuntimeException("not a collection container");
+        }
+
+        @Override
+        public MapContainer asMapContainer() {
+            throw new RuntimeException("not a map container");        }
+    }
+
+    static class CollectionContainer implements Container{
+        Class<? extends Collection> collectionType;
+
+        public ContainerType getContainerType(){
+            return ContainerType.COLLECTION;
+        }
+
+        Container contentType;
+
+        @Override
+        public Class<?> asRawType() {
+            throw new RuntimeException("not a raw type");
+        }
+
+        @Override
+        public CollectionContainer asCollectionContainer() {
+            return this;
+        }
+
+        @Override
+        public MapContainer asMapContainer() {
+            throw new RuntimeException("not a map container");
+        }
+    }
+
+    static class MapContainer implements Container{
+        Class<? extends Map> mapType;
+
+        public ContainerType getContainerType(){
+            return ContainerType.MAP;
+        }
+
+        Container keyType;
+        Container valueType;
+
+        @Override
+        public Class<?> asRawType() {
+            throw new RuntimeException("not a raw type");
+        }
+
+        @Override
+        public CollectionContainer asCollectionContainer() {
+            throw new RuntimeException("not a collection container");
+        }
+
+        @Override
+        public MapContainer asMapContainer() {
+            return this;
+        }
+    }
+
+    static Container resolveContainer(Type type){
+        if(!(type instanceof ParameterizedType)){
+            Raw raw = new Raw();
+            raw.rawType = (Class<?>) type;
+            return raw;
+        }
+        ParameterizedType parameterizedType = (ParameterizedType) type;
+        Class clazz = (Class) parameterizedType.getRawType();
+        if(Collection.class.isAssignableFrom(clazz)){
+            CollectionContainer con = new CollectionContainer();
+            con.contentType = resolveContainer(parameterizedType.getActualTypeArguments()[0]);
+            con.collectionType = clazz;
+            return con;
+        }
+        if(Map.class.isAssignableFrom(clazz)){
+            MapContainer con = new MapContainer();
+            con.keyType = resolveContainer(parameterizedType.getActualTypeArguments()[0]);
+            con.valueType = resolveContainer(parameterizedType.getActualTypeArguments()[1]);
+            con.mapType = clazz;
+            return con;
+        }
+        Raw raw = new Raw();
+        raw.rawType = clazz;
+        return raw;
     }
 }

@@ -1408,4 +1408,18 @@ public class RLPTest {
             assert el.get(0).get(j).asString().equals(strings.get(j));
         }
     }
+
+    public static class Con{
+        public List<Map<String, Set<HashMap<String, String>>>> sss;
+        public Optional<String> ccc;
+        public String vvv;
+    }
+
+    @Test
+    public void testContainer() throws Exception{
+        RLPUtils.Container con = RLPUtils.resolveContainer(Con.class.getField("sss").getGenericType());
+        RLPUtils.Container con2 = RLPUtils.resolveContainer(Con.class.getField("ccc").getGenericType());
+        RLPUtils.Container con3 = RLPUtils.resolveContainer(Con.class.getField("vvv").getGenericType());
+
+    }
 }
