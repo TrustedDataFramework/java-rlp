@@ -1,14 +1,12 @@
 package org.tdf.rlp;
 
 import org.apache.commons.codec.binary.Hex;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
 import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
-import java.security.SecureRandom;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -1324,5 +1322,45 @@ public class RLPTest {
         RLPElement el = RLPElement.fromEncoded(Hex.decodeHex(expected)).asRLPList();
         assert el.asRLPList().stream().allMatch(x -> x instanceof LazyElement);
         el.get(0).asString();
+    }
+
+    @Test(expected = RuntimeException.class)
+    public void testByteOverFlow(){
+        RLPItem.fromLong(0xffL + 1).asByte();
+    }
+
+    @Test(expected = RuntimeException.class)
+    public void testShortOverFlow(){
+        RLPItem.fromLong(0xffffL + 1).asByte();
+    }
+
+    @Test(expected = RuntimeException.class)
+    public void testIntOverFlow(){
+        RLPItem.fromLong(0xffffffffL + 1).asByte();
+    }
+
+    @Test(expected = RuntimeException.class)
+    public void testItemAsList1(){
+        NULL.get(0);
+    }
+
+    @Test(expected = RuntimeException.class)
+    public void testItemAsList2(){
+        NULL.add(NULL);
+    }
+
+    @Test(expected = RuntimeException.class)
+    public void testItemAsList3(){
+        NULL.set(0, NULL);
+    }
+
+    @Test(expected = RuntimeException.class)
+    public void testItemAsList4(){
+        NULL.size();
+    }
+
+    @Test
+    public void testAsByteSuccess(){
+        assert RLPItem.fromLong(0xffL).asByte() == (byte) 0xff;
     }
 }
