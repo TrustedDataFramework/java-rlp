@@ -14,31 +14,34 @@ public interface Container<V> {
             clazz = field.getAnnotation(RLPDecoding.class).as();
         }
 
-        if(clazz == null || clazz == Void.class) return container;
-        if(container.getType() == ContainerType.RAW)
+        if (clazz == null || clazz == Void.class) return container;
+        if (container.getType() == ContainerType.RAW)
             throw new RuntimeException("@RLPDecoding.as is used on collection or map type");
-        if(!field.getType().isAssignableFrom(clazz))
+        if (!field.getType().isAssignableFrom(clazz))
             throw new RuntimeException("cannot assign " + clazz + " as " + field.getType());
-        if(container.getType() == ContainerType.COLLECTION){
+        if (container.getType() == ContainerType.COLLECTION) {
             container.asCollection().collectionType = clazz;
         }
-        if(container.getType() == ContainerType.MAP){
+        if (container.getType() == ContainerType.MAP) {
             container.asMap().mapType = clazz;
         }
         return container;
     }
 
-    static Container fromClass(Class clazz){
-        if(Collection.class.isAssignableFrom(clazz)){
+    static Container fromNoGeneric(Class clazz) {
+        if (Collection.class.isAssignableFrom(clazz)) {
             CollectionContainer con = new CollectionContainer();
-            con.contentType = new Raw(RLPElement.class);
+            Class contentType = RLPUtils.getGenericTypeRecursively(clazz, 0);
+            con.contentType = contentType == null ? null : new Raw(contentType);
             con.collectionType = clazz;
             return con;
         }
-        if(Map.class.isAssignableFrom(clazz)){
+        if (Map.class.isAssignableFrom(clazz)) {
             MapContainer con = new MapContainer();
-            con.keyType = new Raw(RLPElement.class);
-            con.valueType = new Raw(RLPElement.class);
+            Class keyType = RLPUtils.getGenericTypeRecursively(clazz, 0);
+            con.keyType = keyType == null ? null : new Raw(keyType);
+            Class valueType = RLPUtils.getGenericTypeRecursively(clazz, 1);
+            con.valueType = valueType == null ? null : new Raw(valueType);
             con.mapType = clazz;
             return con;
         }
@@ -46,26 +49,38 @@ public interface Container<V> {
     }
 
     static Container fromGeneric(Type type) {
-        if (!(type instanceof ParameterizedType)) {
-            Class clazz = (Class<?>) type;
-            return fromClass(clazz);
+        if (type instanceof Class) {
+            return fromNoGeneric((Class) type);
         }
+        if (!(type instanceof ParameterizedType)) throw new RuntimeException(type + " is not allowed in rlp decoding");
         ParameterizedType parameterizedType = (ParameterizedType) type;
+        Type[] types = parameterizedType.getActualTypeArguments();
         Class clazz = (Class) parameterizedType.getRawType();
-        if (Collection.class.isAssignableFrom(clazz)) {
-            CollectionContainer con = new CollectionContainer();
-            con.contentType = fromGeneric(parameterizedType.getActualTypeArguments()[0]);
-            con.collectionType = clazz;
-            return con;
+        Container container = fromNoGeneric(clazz);
+        switch (container.getType()) {
+            case RAW:
+                return container;
+            case MAP: {
+                MapContainer con = container.asMap();
+                int i = 0;
+                if (con.keyType == null) {
+                    con.keyType = i < types.length ? fromGeneric(types[i++]) : null;
+                }
+                if(con.valueType == null){
+                    con.valueType = i < types.length ? fromGeneric(types[i++]) : null;
+                }
+                return con;
+            }
+            case COLLECTION: {
+                CollectionContainer con = container.asCollection();
+                if (con.contentType == null) {
+                    con.contentType = 0 < types.length ? fromGeneric(types[0]) : null;
+                }
+                return con;
+            }
+            default:
+                throw new RuntimeException("this is unreachable");
         }
-        if (Map.class.isAssignableFrom(clazz)) {
-            MapContainer con = new MapContainer();
-            con.keyType = fromGeneric(parameterizedType.getActualTypeArguments()[0]);
-            con.valueType = fromGeneric(parameterizedType.getActualTypeArguments()[1]);
-            con.mapType = clazz;
-            return con;
-        }
-        return fromClass(clazz);
     }
 
     ContainerType getType();

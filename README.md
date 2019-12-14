@@ -74,144 +74,60 @@ public class Node{
 ```
 
 
-- supports Collection, Map and POJO while set and and map is no ordered, generic list could be nested to any deepth
+- supports Collection, Map and POJO while set and and map is no ordered, generic could be nested to any deepth
 
 ```java
-public class Nested{
+public static class Tree{
     @RLP
-    private List<List<List<String>>> nested;
-
-    public Nested() {
-    }
+    @RLPDecoding(as = ConcurrentHashMap.class /* the deserialized tree will be ConcurrentHashMap instead of defualt implementation HashMap*/ ) 
+    // map are serialized as RLPList [key, value, key, value, ...] 
+    // use @RLPEncoding.keyOrdering() to specify the ordering of key-value pair
+    // use @RLPEncoding.contentOrdering() to speficy the ordering of set or anther collection type
+    public Map<ByteArrayMap<Set<String>>, byte[]> tree;
 }
 ```    
 
 ```java
 public class Main{
     public static void main(String[] args){
-        Nested nested = new Nested();
-        nested.nested = new ArrayList<>();
-        nested.nested.add(new ArrayList<>());
-        nested.nested.get(0).add(new ArrayList<>());
-        nested.nested.get(0).get(0).addAll(Arrays.asList("aaa", "bbb"));
-        byte[] encoded = RLPCodec.encode(nested);
-        nested = RLPCodec.decode(encoded, Nested.class);
-        assert nested.nested.get(0).get(0).get(0).equals("aaa");
-        assert nested.nested.get(0).get(0).get(1).equals("bbb");
+        Tree tree = new Tree();
+        tree.tree = new HashMap<>();
+        tree.tree.put(new ByteArrayMap<>(), "1".getBytes());
+        tree.tree.keySet().stream()
+                .findFirst().get()
+                .put("1".getBytes(), new HashSet<>(Arrays.asList("1", "2", "3")));
+        byte[] encoded = RLPCodec.encode(tree);
+        RLPElement el = RLPElement.fromEncoded(encoded, false);
+        Tree tree1 = RLPCodec.decode(encoded, Tree.class);
+        assert tree1.tree instanceof ConcurrentHashMap;
+        ByteArrayMap<Set<String>> tree2 = tree1.tree.keySet().stream()
+                .findFirst().get();
+        assert Arrays.equals(tree1.tree.get(tree2), "1".getBytes());
+        assert tree2.get("1".getBytes()).containsAll(Arrays.asList("1", "2", "3"));
     }
 }
 ```
 
-- encoding/decoding of Set/Map
+- set and map encoding/decoding without wrapper by Container
 
 ```java
 public class Main{
-
-    private static class ByteArraySetWrapper {
-        @RLP
-        @RLPDecoding(as = TreeSet.class)
-        @RLPEncoding(contentOrdering = BytesComparator.class)
-        private Set<byte[]> bytesSet;
+    // store generic info in a dummy field
+    private abstract class Dummy2 {
+        private List<ByteArrayMap<String>> dummy;
     }
 
-    private static class BytesComparator implements Comparator<byte[]> {
-        @Override
-        public int compare(byte[] o1, byte[] o2) {
-            return new BigInteger(1, o1).compareTo(new BigInteger(1, o2));
-        }
-    }
+    public static void main(String[] args) throws Exception{
+        List<ByteArrayMap<String>> list = new ArrayList<>();
+        list.add(new ByteArrayMap<>());
+        list.get(0).put("1".getBytes(), "1");
 
-    public static class MapWrapper2 {
-        @RLP
-        @RLPDecoding(as = TreeMap.class)
-        @RLPEncoding(keyOrdering = StringComparator.class)
-        public Map<String, Map<String, String>> map = new HashMap<>();
-    }    
+        List<Map<byte[], String>> decoded = (List<Map<byte[], String>>) RLPCodec.decodeContainer(
+                RLPCodec.encode(list),
+                Container.fromField(Dummy2.class.getDeclaredField("dummy"))
+        );
 
-    private static class StringComparator implements Comparator<String> {
-        @Override
-        public int compare(String o1, String o2) {
-            return o1.length() - o2.length();
-        }
-    }    
-
-    public static void main(String[] args){
-        ByteArraySetWrapper wrapper =
-                RLPList.of(RLPList.of(RLPItem.fromLong(1), RLPItem.fromLong(2))).as(ByteArraySetWrapper.class);
-        assert wrapper.bytesSet instanceof TreeSet;
-
-        wrapper = new ByteArraySetWrapper();
-        wrapper.bytesSet = new HashSet<>();
-        wrapper.bytesSet.add(new byte[]{1});
-        wrapper.bytesSet.add(new byte[]{2});
-        wrapper.bytesSet.add(new byte[]{3});
-        wrapper.bytesSet.add(new byte[]{4});
-        wrapper.bytesSet.add(new byte[]{5});
-        boolean sorted = true;
-        int i = 0;
-        for (byte[] b : wrapper.bytesSet) {
-            if (new BigInteger(1, b).compareTo(BigInteger.valueOf(i + 1)) != 0) {
-                sorted = false;
-                break;
-            }
-            i++;
-        }
-        assert !sorted;
-        RLPElement el = RLPElement.readRLPTree(wrapper).get(0);
-        for (int j = 0; j < el.size(); j++) {
-            assert new BigInteger(1, el.get(j).asBytes()).compareTo(BigInteger.valueOf(j + 1)) == 0;
-        }
-
-        MapWrapper2 wrapper2 = new MapWrapper2();
-        wrapper2.map.put("1", new HashMap<>());
-        wrapper2.map.put("22", new HashMap<>());
-        wrapper2.map.put("sss", new HashMap<>());
-        wrapper2.map.get("sss").put("aaa", "bbb");
-        hasSorted = true;
-        i = 1;
-        for (String k : wrapper2.map.keySet()) {
-            if (k.length() != i) {
-                hasSorted = false;
-                break;
-            }
-            i++;
-        }
-        assert !hasSorted;
-        byte[] encoded = RLPCodec.encode(wrapper2);
-        el = RLPElement.readRLPTree(wrapper2);
-        for (int j = 0; j < 3; j++) {
-            assert el.get(0).get(j * 2).asString().length() == j + 1;
-        }
-        MapWrapper2 decoded = RLPCodec.decode(encoded, MapWrapper2.class);
-        assert decoded.map instanceof TreeMap;
-        assert decoded.map.get("sss").get("aaa").equals("bbb");        
-    }
-}
-```
-
-- set and map encoding/decoding without wrapper
-
-```java
-public class Main{
-
-    public static void main(String[] args){
-        Map<String, String> map = new HashMap<>();
-        map.put("key", "value");
-        byte[] encoded = RLPCodec.encode(map);
-        TreeMap<String, String> m2 = RLPCodec.decodeMap(encoded,
-               TreeMap.class, String.class, String.class);
-        assert m2.get("key").equals("value");
-     
-     
-        Set<byte[]> set = new HashSet<>();
-        set.add("1".getBytes());
-        set.add("2".getBytes());
-        encoded = RLPCodec.encode(set);
-        set = RLPCodec.decodeCollection(encoded, ByteArraySet.class, byte[].class);
-        ByteArraySet s2 = RLPCodec.decodeCollection(encoded, ByteArraySet.class, byte[].class);
-        assert set instanceof ByteArraySet;
-        assert set.contains("1".getBytes());
-        assert set.contains("2".getBytes());
+        assert decoded.get(0).get("1".getBytes()).equals("1");
     }
 }
 ```
@@ -276,35 +192,7 @@ public class Main{
 }
 
 ```
-
-- decode use Container
-
-```java
-
-public class Main{
-
-    public static void main(String[] args){
-        List<Set<byte[]>> list = new ArrayList<>();
-        list.add(new ByteArraySet());
-        list.get(0).add("1".getBytes());
-        Container container = CollectionContainer.builder()
-                .collectionType(ArrayList.class)
-                .contentType(
-                        CollectionContainer.builder()
-                        .collectionType(ByteArraySet.class)
-                        .contentType(new Raw(byte[].class))
-                        .build()
-                )
-                .build();
-        List<Set<byte[]>> decoded = (List<Set<byte[]>>) RLPCodec.decodeContainer(
-                RLPCodec.encode(list),
-                container
-        );
-        assert decoded.get(0).contains("1".getBytes());
-    }
-}
-
-```        
+    
 
 Benchmark compare to EthereumJ:
 

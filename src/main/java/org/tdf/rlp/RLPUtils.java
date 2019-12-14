@@ -14,7 +14,9 @@ final class RLPUtils {
             return null;
         }
         try {
-            return encoder.newInstance();
+            Constructor<? extends RLPEncoder> con = encoder.getDeclaredConstructor();
+            con.setAccessible(true);
+            return con.newInstance();
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -29,7 +31,9 @@ final class RLPUtils {
             return null;
         }
         try {
-            return decoder.newInstance();
+            Constructor<? extends RLPDecoder> con = decoder.getDeclaredConstructor();
+            con.setAccessible(true);
+            return con.newInstance();
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -76,4 +80,22 @@ final class RLPUtils {
         }
     }
 
+    static Class getGenericTypeRecursively(Class clazz, final int index) {
+        Optional<ParameterizedType> o = Arrays.stream(clazz.getGenericInterfaces())
+                .filter(x -> x instanceof ParameterizedType)
+                .map(x -> (ParameterizedType) x)
+                .filter(x -> index < x.getActualTypeArguments().length
+                        && x.getActualTypeArguments()[index] instanceof Class)
+                .findFirst();
+
+        if (o.isPresent()) return index < o.get().getActualTypeArguments().length ?
+                (Class) o.get().getActualTypeArguments()[index] : null;
+        Type type = clazz.getGenericSuperclass();
+        if (type instanceof ParameterizedType) {
+            Type[] types = ((ParameterizedType) type).getActualTypeArguments();
+            if(index < types.length && types[index] instanceof Class) return (Class) types[index];
+        }
+        if (clazz.getSuperclass() == null) return null;
+        return getGenericTypeRecursively(clazz.getSuperclass(), index);
+    }
 }

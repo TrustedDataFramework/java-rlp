@@ -61,35 +61,11 @@ public final class RLPCodec {
             return (T) res;
         }
         // cannot determine generic type at runtime
-        if (clazz == List.class || clazz == Collection.class) {
-            return (T) element.asRLPList();
-        }
-        if (clazz == Set.class || clazz == HashSet.class) {
-            return (T) new HashSet(element.asRLPList());
-        }
-        if (clazz == TreeSet.class) {
-            return (T) new TreeSet(element.asRLPList());
-        }
-        if (clazz == Map.class || clazz == HashMap.class) {
-            HashMap m = new HashMap(element.size() / 2);
-            for (int i = 0; i < element.size(); i += 2) {
-                m.put(element.get(i), element.get(i + 1));
-            }
-            return (T) m;
-        }
-        if (clazz == TreeMap.class) {
-            TreeMap m = new TreeMap();
-            for (int i = 0; i < element.size(); i += 2) {
-                m.put(element.get(i), element.get(i + 1));
-            }
-            return (T) m;
-        }
-        if (clazz == Queue.class || clazz == LinkedList.class) {
-            LinkedList list = new LinkedList(element.asRLPList());
-            return (T) list;
-        }
-        if (clazz == Deque.class || clazz == ArrayDeque.class) {
-            return (T) new ArrayDeque<>(element.asRLPList());
+        if (
+                Collection.class.isAssignableFrom(clazz)
+                || Map.class.isAssignableFrom(clazz)
+        ) {
+            return (T) decodeContainer(element, Container.fromNoGeneric(clazz));
         }
         T o;
 
@@ -275,10 +251,12 @@ public final class RLPCodec {
 
     static RLPElement encodeMap(Map m, Comparator keyOrdering) {
         RLPList list = RLPList.createEmpty(m.size() * 2);
-        Stream<Object> keys = keyOrdering == null ? m.keySet().stream() : m.keySet().stream().sorted(keyOrdering);
-        keys.forEach(x -> {
-            list.add(readRLPTree(x));
-            list.add(readRLPTree(m.get(x)));
+        Stream<Map.Entry> entires = m.entrySet().stream();
+        if (keyOrdering != null) entires =
+                entires.sorted((x, y) -> keyOrdering.compare(x.getKey(), y.getKey()));
+        entires.forEach(x -> {
+            list.add(readRLPTree(x.getKey()));
+            list.add(readRLPTree(x.getValue()));
         });
         return list;
     }
@@ -294,11 +272,12 @@ public final class RLPCodec {
                 CollectionContainer.fromTypes(collectionType, elementType));
     }
 
-    public static Object decodeContainer(byte[] encoded, Container container){
+    public static Object decodeContainer(byte[] encoded, Container container) {
         return decodeContainer(RLPElement.fromEncoded(encoded), container);
     }
 
     public static Object decodeContainer(RLPElement element, Container container) {
+        if (container == null) return element;
         switch (container.getType()) {
             case RAW:
                 return decode(element, container.asRaw());
@@ -351,7 +330,7 @@ public final class RLPCodec {
         if (clazz == Map.class) {
             return HashMap.class;
         }
-        if(clazz == ConcurrentMap.class){
+        if (clazz == ConcurrentMap.class) {
             return ConcurrentHashMap.class;
         }
         if (clazz.isInterface() || Modifier.isAbstract(clazz.getModifiers()))
