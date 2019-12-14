@@ -5,6 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
 
 import java.util.Collection;
+import java.util.Map;
 
 @NoArgsConstructor(access = AccessLevel.PACKAGE)
 @AllArgsConstructor(access = AccessLevel.PACKAGE)
@@ -28,7 +29,7 @@ class CollectionContainer<C extends Collection<T>, T> implements Container<T> {
     }
 
     @Override
-    public MapContainer<?, ?, T> asMap() {
+    public MapContainer<? extends Map<?, T>, ?, T> asMap() {
         throw new RuntimeException("not a map container");
     }
 

@@ -1,5 +1,8 @@
 package org.tdf.rlp;
 
+import java.util.Collection;
+import java.util.Map;
+
 class Raw<V> implements Container<V> {
     Class<V> rawType;
 
@@ -13,12 +16,12 @@ class Raw<V> implements Container<V> {
     }
 
     @Override
-    public CollectionContainer<?, V> asCollection() {
+    public CollectionContainer<? extends Collection<V>, V> asCollection() {
         throw new RuntimeException("not a collection container");
     }
 
     @Override
-    public MapContainer<?, ?, V> asMap() {
+    public MapContainer<? extends Map<?, V>, ?, V> asMap() {
         throw new RuntimeException("not a map container");
     }
 

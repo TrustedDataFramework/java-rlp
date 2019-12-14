@@ -4,11 +4,12 @@ import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
 
+import java.util.Collection;
 import java.util.Map;
 
 @NoArgsConstructor(access = AccessLevel.PACKAGE)
 @AllArgsConstructor(access = AccessLevel.PACKAGE)
-class MapContainer<M, K, V> implements Container<V> {
+class MapContainer<M extends Map<K, V>, K, V> implements Container<V> {
     Class<M> mapType;
 
     public ContainerType getType() {
@@ -24,12 +25,12 @@ class MapContainer<M, K, V> implements Container<V> {
     }
 
     @Override
-    public CollectionContainer<?, V> asCollection() {
+    public CollectionContainer<? extends Collection<V>, V> asCollection() {
         throw new RuntimeException("not a collection container");
     }
 
     @Override
-    public MapContainer<M, K, V> asMap() {
+    public MapContainer<? extends Map<?, V>, ?, V> asMap() {
         return this;
     }
 
