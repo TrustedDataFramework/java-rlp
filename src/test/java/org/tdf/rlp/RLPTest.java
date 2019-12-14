@@ -1632,4 +1632,14 @@ public class RLPTest {
         assert Arrays.equals(tree1.tree.get(tree2), "1".getBytes());
         assert tree2.get("1".getBytes()).containsAll(Arrays.asList("1", "2", "3"));
     }
+
+    @Test
+    public void testMap2(){
+        Map<String, String> m = new HashMap<>();
+        m.put("1", "2");
+        Map m2 = RLPCodec.decode(RLPCodec.encode(m), Map.class);
+        assert ((RLPElement) m2.keySet().stream().findFirst().get()).asString().equals("1");
+        Map<byte[], RLPElement> m3 = RLPCodec.decode(RLPCodec.encode(m), ByteArrayMap.class);
+        assert m3.get("1".getBytes()).asString().equals("2");
+    }
 }
