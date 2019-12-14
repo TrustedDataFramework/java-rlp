@@ -277,6 +277,35 @@ public class Main{
 
 ```
 
+- decode use Container
+
+```java
+
+public class Main{
+
+    public static void main(String[] args){
+        List<Set<byte[]>> list = new ArrayList<>();
+        list.add(new ByteArraySet());
+        list.get(0).add("1".getBytes());
+        Container container = CollectionContainer.builder()
+                .collectionType(ArrayList.class)
+                .contentType(
+                        CollectionContainer.builder()
+                        .collectionType(ByteArraySet.class)
+                        .contentType(new Raw(byte[].class))
+                        .build()
+                )
+                .build();
+        List<Set<byte[]>> decoded = (List<Set<byte[]>>) RLPCodec.decodeContainer(
+                RLPCodec.encode(list),
+                container
+        );
+        assert decoded.get(0).contains("1".getBytes());
+    }
+}
+
+```        
+
 Benchmark compare to EthereumJ:
 
 decoding list 10000000 times: 

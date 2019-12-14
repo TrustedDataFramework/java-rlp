@@ -1,9 +1,12 @@
 package org.tdf.rlp;
 
+import lombok.Builder;
+
 import java.util.Collection;
 import java.util.Map;
 
-class Raw<V> implements Container<V> {
+@Builder
+public class Raw<V> implements Container<V> {
     Class<V> rawType;
 
     public ContainerType getType() {
@@ -28,7 +31,7 @@ class Raw<V> implements Container<V> {
     Raw() {
     }
 
-    Raw(Class<V> rawType) {
+    public Raw(Class<V> rawType) {
         this.rawType = rawType;
     }
 }

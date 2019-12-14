@@ -1492,17 +1492,17 @@ public class RLPTest {
     }
 
     @Test
-    public void testMapContainer(){
+    public void testMapContainer() {
         Map<String, String> map = new HashMap<>();
         map.put("key", "value");
         byte[] encoded = RLPCodec.encode(map);
         TreeMap<String, String> m2 = RLPCodec.decodeMap(encoded,
-               TreeMap.class, String.class, String.class);
+                TreeMap.class, String.class, String.class);
         assert m2.get("key").equals("value");
     }
 
     @Test
-    public void testCollectionContainer(){
+    public void testCollectionContainer() {
         Set<byte[]> set = new HashSet<>();
         set.add("1".getBytes());
         set.add("2".getBytes());
@@ -1513,4 +1513,27 @@ public class RLPTest {
         assert set.contains("1".getBytes());
         assert set.contains("2".getBytes());
     }
+
+    @Test
+    public void test3() {
+        List<Set<byte[]>> list = new ArrayList<>();
+        list.add(new ByteArraySet());
+        list.get(0).add("1".getBytes());
+        Container container = CollectionContainer.builder()
+                .collectionType(ArrayList.class)
+                .contentType(
+                        CollectionContainer.builder()
+                        .collectionType(ByteArraySet.class)
+                        .contentType(new Raw(byte[].class))
+                        .build()
+                )
+                .build();
+        List<Set<byte[]>> decoded = (List<Set<byte[]>>) RLPCodec.decodeContainer(
+                RLPCodec.encode(list),
+                container
+        );
+
+        assert decoded.get(0).contains("1".getBytes());
+    }
+
 }

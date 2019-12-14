@@ -2,6 +2,7 @@ package org.tdf.rlp;
 
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.NoArgsConstructor;
 
 import java.util.Collection;
@@ -9,15 +10,16 @@ import java.util.Map;
 
 @NoArgsConstructor(access = AccessLevel.PACKAGE)
 @AllArgsConstructor(access = AccessLevel.PACKAGE)
-class MapContainer<M extends Map<K, V>, K, V> implements Container<V> {
-    Class<M> mapType;
+@Builder
+public class MapContainer<M extends Map<K, V>, K, V> implements Container<V> {
+    Class mapType;
 
     public ContainerType getType() {
         return ContainerType.MAP;
     }
 
-    Container<K> keyType;
-    Container<V> valueType;
+    Container keyType;
+    Container valueType;
 
     @Override
     public Class<V> asRaw() {

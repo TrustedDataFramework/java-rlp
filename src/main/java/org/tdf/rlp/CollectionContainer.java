@@ -2,6 +2,7 @@ package org.tdf.rlp;
 
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.NoArgsConstructor;
 
 import java.util.Collection;
@@ -9,14 +10,15 @@ import java.util.Map;
 
 @NoArgsConstructor(access = AccessLevel.PACKAGE)
 @AllArgsConstructor(access = AccessLevel.PACKAGE)
-class CollectionContainer<C extends Collection<T>, T> implements Container<T> {
-    Class<C> collectionType;
+@Builder
+public class CollectionContainer<C extends Collection<T>, T> implements Container<T> {
+    Class collectionType;
 
     public ContainerType getType() {
         return ContainerType.COLLECTION;
     }
 
-    Container<T> contentType;
+    Container contentType;
 
     @Override
     public Class<T> asRaw() {

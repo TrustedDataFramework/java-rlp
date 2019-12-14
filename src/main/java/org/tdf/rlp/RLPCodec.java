@@ -294,7 +294,11 @@ public final class RLPCodec {
                 CollectionContainer.fromTypes(collectionType, elementType));
     }
 
-    static Object decodeContainer(RLPElement element, Container container) {
+    public static Object decodeContainer(byte[] encoded, Container container){
+        return decodeContainer(RLPElement.fromEncoded(encoded), container);
+    }
+
+    public static Object decodeContainer(RLPElement element, Container container) {
         switch (container.getType()) {
             case RAW:
                 return decode(element, container.asRaw());
