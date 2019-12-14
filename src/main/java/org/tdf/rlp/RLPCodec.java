@@ -5,6 +5,8 @@ import lombok.NonNull;
 import java.lang.reflect.*;
 import java.math.BigInteger;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -344,6 +346,9 @@ public final class RLPCodec {
         }
         if (clazz == Map.class) {
             return HashMap.class;
+        }
+        if(clazz == ConcurrentMap.class){
+            return ConcurrentHashMap.class;
         }
         if (clazz.isInterface() || Modifier.isAbstract(clazz.getModifiers()))
             throw new RuntimeException("cannot new instance of " + clazz);
