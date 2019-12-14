@@ -73,67 +73,8 @@ public class Node{
 }
 ```
 
-- custom encoding/decoding
 
-```java
-package org.tdf.rlp;
-
-import java.util.HashMap;
-import java.util.Map;
-
-public class Main{
-    public static class MapEncoderDecoder implements RLPEncoder<Map<String, String>>, RLPDecoder<Map<String, String>> {
-        @Override
-        public Map<String, String> decode(RLPElement list) {
-            Map<String, String> map = new HashMap<>(list.size() / 2);
-            for (int i = 0; i < list.size(); i += 2) {
-                map.put(list.get(i).asString(), list.get(i+1).asString());
-            }
-            return map;
-        }
-
-        @Override
-        public RLPElement encode(Map<String, String> o) {
-            RLPList list = RLPList.createEmpty(o.size() * 2);
-            o.keySet().stream().sorted(String::compareTo).forEach(x -> {
-                list.add(RLPItem.fromString(x));
-                list.add(RLPItem.fromString(o.get(x)));
-            });
-            return list;
-        }
-    }
-
-    public static class MapWrapper{
-        @RLP
-        @RLPEncoding(MapEncoderDecoder.class)
-        @RLPDecoding(MapEncoderDecoder.class)
-        public Map<String, String> map;
-
-        public MapWrapper(Map<String, String> map) {
-            this.map = map;
-        }
-
-        public MapWrapper() {
-        }
-    }
-
-    public static void main(String[] args){
-        Map<String, String> m = new HashMap<>();
-        m.put("a", "1");
-        m.put("b", "2");
-        byte[] encoded = RLPCodec.encode(new MapWrapper(m));
-        MapWrapper decoded = RLPCodec.decode(encoded, MapWrapper.class);
-        assertTrue(decoded.map.get("a").equals("1"));
-    }
-
-    public static void assertTrue(boolean b){
-        if(!b) throw new RuntimeException("assertion failed");
-    }
-}
-
-```
-
-- supports List and POJO only for rlp is ordered while set is no ordered, generic list could be nested to any deepth
+- supports Collection, Map and POJO while set and and map is no ordered, generic list could be nested to any deepth
 
 ```java
 public class Nested{
@@ -246,6 +187,94 @@ public class Main{
         assert decoded.map.get("sss").get("aaa").equals("bbb");        
     }
 }
+```
+
+- set and map encoding/decoding without wrapper
+
+```java
+public class Main{
+
+    public static void main(String[] args){
+        Map<String, String> map = new HashMap<>();
+        map.put("key", "value");
+        byte[] encoded = RLPCodec.encode(map);
+        TreeMap<String, String> m2 = RLPCodec.decodeMap(encoded,
+               TreeMap.class, String.class, String.class);
+        assert m2.get("key").equals("value");
+     
+     
+        Set<byte[]> set = new HashSet<>();
+        set.add("1".getBytes());
+        set.add("2".getBytes());
+        encoded = RLPCodec.encode(set);
+        set = RLPCodec.decodeCollection(encoded, ByteArraySet.class, byte[].class);
+        ByteArraySet s2 = RLPCodec.decodeCollection(encoded, ByteArraySet.class, byte[].class);
+        assert set instanceof ByteArraySet;
+        assert set.contains("1".getBytes());
+        assert set.contains("2".getBytes());
+    }
+}
+```
+
+
+- custom encoding/decoding
+
+```java
+package org.tdf.rlp;
+
+import java.util.HashMap;
+import java.util.Map;
+
+public class Main{
+    public static class MapEncoderDecoder implements RLPEncoder<Map<String, String>>, RLPDecoder<Map<String, String>> {
+        @Override
+        public Map<String, String> decode(RLPElement list) {
+            Map<String, String> map = new HashMap<>(list.size() / 2);
+            for (int i = 0; i < list.size(); i += 2) {
+                map.put(list.get(i).asString(), list.get(i+1).asString());
+            }
+            return map;
+        }
+
+        @Override
+        public RLPElement encode(Map<String, String> o) {
+            RLPList list = RLPList.createEmpty(o.size() * 2);
+            o.keySet().stream().sorted(String::compareTo).forEach(x -> {
+                list.add(RLPItem.fromString(x));
+                list.add(RLPItem.fromString(o.get(x)));
+            });
+            return list;
+        }
+    }
+
+    public static class MapWrapper{
+        @RLP
+        @RLPEncoding(MapEncoderDecoder.class)
+        @RLPDecoding(MapEncoderDecoder.class)
+        public Map<String, String> map;
+
+        public MapWrapper(Map<String, String> map) {
+            this.map = map;
+        }
+
+        public MapWrapper() {
+        }
+    }
+
+    public static void main(String[] args){
+        Map<String, String> m = new HashMap<>();
+        m.put("a", "1");
+        m.put("b", "2");
+        byte[] encoded = RLPCodec.encode(new MapWrapper(m));
+        MapWrapper decoded = RLPCodec.decode(encoded, MapWrapper.class);
+        assertTrue(decoded.map.get("a").equals("1"));
+    }
+
+    public static void assertTrue(boolean b){
+        if(!b) throw new RuntimeException("assertion failed");
+    }
+}
+
 ```
 
 Benchmark compare to EthereumJ:
