@@ -10,7 +10,7 @@ import java.util.concurrent.ConcurrentMap;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static org.tdf.rlp.RLPUtils.fromField;
+import static org.tdf.rlp.Container.fromField;
 import static org.tdf.rlp.RLPConstants.*;
 import static org.tdf.rlp.RLPElement.readRLPTree;
 

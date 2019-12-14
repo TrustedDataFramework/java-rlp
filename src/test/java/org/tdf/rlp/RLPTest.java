@@ -13,7 +13,7 @@ import java.util.stream.Stream;
 
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
-import static org.tdf.rlp.RLPUtils.fromGeneric;
+import static org.tdf.rlp.Container.fromGeneric;
 import static org.tdf.rlp.RLPCodec.*;
 import static org.tdf.rlp.RLPItem.NULL;
 import static org.tdf.rlp.RLPItem.ONE;
@@ -1514,6 +1514,9 @@ public class RLPTest {
         assert set.contains("2".getBytes());
     }
 
+    private abstract class Dummy{
+        private List<Set<String>> dummy;
+    }
     @Test
     public void test3() {
         List<Set<byte[]>> list = new ArrayList<>();
@@ -1536,4 +1539,17 @@ public class RLPTest {
         assert decoded.get(0).contains("1".getBytes());
     }
 
+    @Test
+    public void testdummy() throws Exception{
+        List<Set<String>> list = new ArrayList<>();
+        list.add(new HashSet<>());
+        list.get(0).add("1");
+
+        List<Set<String>> decoded = (List<Set<String>>) RLPCodec.decodeContainer(
+                RLPCodec.encode(list),
+                Container.fromField(Dummy.class.getDeclaredField("dummy"))
+        );
+
+        assert decoded.get(0).contains("1");
+    }
 }
