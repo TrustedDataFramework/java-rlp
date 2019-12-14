@@ -1619,10 +1619,9 @@ public class RLPTest {
     public void testMapTree() {
         Tree tree = new Tree();
         tree.tree = new HashMap<>();
-        tree.tree.put(new ByteArrayMap<>(), "1".getBytes());
-        tree.tree.keySet().stream()
-                .findFirst().get()
-                .put("1".getBytes(), new HashSet<>(Arrays.asList("1", "2", "3")));
+        ByteArrayMap<Set<String>> map = new ByteArrayMap<>();
+        map.put("1".getBytes(), new HashSet<>(Arrays.asList("1", "2", "3")));
+        tree.tree.put(map, "1".getBytes());
         byte[] encoded = RLPCodec.encode(tree);
         RLPElement el = RLPElement.fromEncoded(encoded, false);
         Tree tree1 = RLPCodec.decode(encoded, Tree.class);
