@@ -39,15 +39,6 @@ public class Node{
         children.addAll(nodes);
     }
 
-    private static class Nested{
-        @RLP
-        private List<List<List<String>>> nested;
-
-        public Nested() {
-        }
-    }
-
-
     public static void main(String[] args){
         Node root = new Node("1");
         root.addChildren(Arrays.asList(new Node("2"), new Node("3")));
@@ -79,7 +70,9 @@ public class Node{
 ```java
 public static class Tree{
     @RLP
-    @RLPDecoding(as = ConcurrentHashMap.class /* the deserialized tree will be ConcurrentHashMap instead of defualt implementation HashMap*/ ) 
+    @RLPDecoding(as = ConcurrentHashMap.class 
+        /* the type of deserialized tree will be ConcurrentHashMap instead of defualt implementation HashMap*/ 
+    ) 
     // map are serialized as RLPList [key, value, key, value, ...] 
     // use @RLPEncoding.keyOrdering() to specify the ordering of key-value pair
     // use @RLPEncoding.contentOrdering() to speficy the ordering of set or anther collection type
