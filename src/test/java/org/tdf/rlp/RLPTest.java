@@ -13,7 +13,7 @@ import java.util.stream.Stream;
 
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
-import static org.tdf.rlp.Container.resolveContainerofGeneric;
+import static org.tdf.rlp.RLPUtils.fromGeneric;
 import static org.tdf.rlp.RLPCodec.*;
 import static org.tdf.rlp.RLPItem.NULL;
 import static org.tdf.rlp.RLPItem.ONE;
@@ -1408,10 +1408,10 @@ public class RLPTest {
 
     @Test
     public void testContainer() throws Exception {
-        Container con = resolveContainerofGeneric(Con.class.getField("sss").getGenericType());
-        Container con2 = resolveContainerofGeneric(Con.class.getField("ccc").getGenericType());
-        Container con3 = resolveContainerofGeneric(Con.class.getField("vvv").getGenericType());
-        Container con4 = resolveContainerofGeneric(Con.class.getField("li").getGenericType());
+        Container con = fromGeneric(Con.class.getField("sss").getGenericType());
+        Container con2 = fromGeneric(Con.class.getField("ccc").getGenericType());
+        Container con3 = fromGeneric(Con.class.getField("vvv").getGenericType());
+        Container con4 = fromGeneric(Con.class.getField("li").getGenericType());
     }
 
     public static class MapWrapper2 {
@@ -1489,5 +1489,28 @@ public class RLPTest {
         for (int j = 0; j < el.size(); j++) {
             assert new BigInteger(1, el.get(j).asBytes()).compareTo(BigInteger.valueOf(j + 1)) == 0;
         }
+    }
+
+    @Test
+    public void testMapContainer(){
+        Map<String, String> map = new HashMap<>();
+        map.put("key", "value");
+        byte[] encoded = RLPCodec.encode(map);
+        TreeMap<String, String> m2 = RLPCodec.decodeMap(encoded,
+               TreeMap.class, String.class, String.class);
+        assert m2.get("key").equals("value");
+    }
+
+    @Test
+    public void testCollectionContainer(){
+        Set<byte[]> set = new HashSet<>();
+        set.add("1".getBytes());
+        set.add("2".getBytes());
+        byte[] encoded = RLPCodec.encode(set);
+        set = RLPCodec.decodeCollection(encoded, ByteArraySet.class, byte[].class);
+        ByteArraySet s2 = RLPCodec.decodeCollection(encoded, ByteArraySet.class, byte[].class);
+        assert set instanceof ByteArraySet;
+        assert set.contains("1".getBytes());
+        assert set.contains("2".getBytes());
     }
 }

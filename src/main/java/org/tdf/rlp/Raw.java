@@ -1,31 +1,31 @@
 package org.tdf.rlp;
 
-class Raw implements Container {
-    Class<?> rawType;
+class Raw<V> implements Container<V> {
+    Class<V> rawType;
 
-    public ContainerType getContainerType() {
+    public ContainerType getType() {
         return ContainerType.RAW;
     }
 
     @Override
-    public Class<?> asRawType() {
+    public Class<V> asRaw() {
         return rawType;
     }
 
     @Override
-    public CollectionContainer asCollectionContainer() {
+    public CollectionContainer<?, V> asCollection() {
         throw new RuntimeException("not a collection container");
     }
 
     @Override
-    public MapContainer asMapContainer() {
+    public MapContainer<?, ?, V> asMap() {
         throw new RuntimeException("not a map container");
     }
 
-    public Raw() {
+    Raw() {
     }
 
-    Raw(Class<?> rawType) {
+    Raw(Class<V> rawType) {
         this.rawType = rawType;
     }
 }

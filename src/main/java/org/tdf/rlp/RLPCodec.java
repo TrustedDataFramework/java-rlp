@@ -8,7 +8,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static org.tdf.rlp.Container.resolveField;
+import static org.tdf.rlp.RLPUtils.fromField;
 import static org.tdf.rlp.RLPConstants.*;
 import static org.tdf.rlp.RLPElement.readRLPTree;
 
@@ -82,11 +82,11 @@ public final class RLPCodec {
             }
             return (T) m;
         }
-        if(clazz == Queue.class || clazz == LinkedList.class){
+        if (clazz == Queue.class || clazz == LinkedList.class) {
             LinkedList list = new LinkedList(element.asRLPList());
             return (T) list;
         }
-        if(clazz == Deque.class || clazz == ArrayDeque.class){
+        if (clazz == Deque.class || clazz == ArrayDeque.class) {
             return (T) new ArrayDeque<>(element.asRLPList());
         }
         T o;
@@ -119,7 +119,7 @@ public final class RLPCodec {
                 if (el.isNull()) {
                     continue;
                 }
-                Container container = resolveField(f);
+                Container container = fromField(f);
                 f.set(o, decodeContainer(el, container));
             } catch (Exception e) {
                 throw new RuntimeException(e);
@@ -281,13 +281,24 @@ public final class RLPCodec {
         return list;
     }
 
+    public static <M extends Map<K, V>, K, V> M decodeMap
+            (byte[] encoded, Class<M> mapType, Class<K> keyType, Class<V> valueType) {
+        return (M) decodeContainer(RLPElement.fromEncoded(encoded), MapContainer.fromTypes(mapType, keyType, valueType));
+    }
+
+    public static <C extends Collection<V>, V> C decodeCollection
+            (byte[] encoded, Class<C> collectionType, Class<V> elementType) {
+        return (C) decodeContainer(RLPElement.fromEncoded(encoded),
+                CollectionContainer.fromTypes(collectionType, elementType));
+    }
+
     static Object decodeContainer(RLPElement element, Container container) {
-        switch (container.getContainerType()) {
+        switch (container.getType()) {
             case RAW:
-                return decode(element, container.asRawType());
+                return decode(element, container.asRaw());
             case COLLECTION: {
                 try {
-                    CollectionContainer collectionContainer = container.asCollectionContainer();
+                    CollectionContainer collectionContainer = container.asCollection();
                     Collection res = (Collection) getDefaultImpl(collectionContainer.collectionType).newInstance();
                     for (int i = 0; i < element.size(); i++) {
                         res.add(decodeContainer(element.get(i), collectionContainer.contentType));
@@ -299,7 +310,7 @@ public final class RLPCodec {
             }
             case MAP: {
                 try {
-                    MapContainer mapContainer = container.asMapContainer();
+                    MapContainer mapContainer = container.asMap();
                     Map res = (Map) getDefaultImpl(mapContainer.mapType).newInstance();
                     for (int i = 0; i < element.size(); i += 2) {
                         res.put(
