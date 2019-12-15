@@ -18,11 +18,11 @@ Fast ethereum rlp decode & encode in java.
 ## Notes on java.util.Collection and java.util.Map
 
 - Maps will be encoded as key-value pairs RLPList [key1, value1, key2, value2, ...]
-- java.util.TreeMap is recommended implementation of java.util.Map since key-value pairs in TreeMap are ordered.
-- java.util.TreeSet is recommended implementation of java.util.Set since keys in TreeSet are ordered.
-- Besides java.util.TreeMap, the ordering of key-value pairs could be specified by @RLPEncoding.keyOrdering() when encoding.
-- Besides java.util.TreeSet, the ordering of element could be specified by @RLPEncoding.keyOrdering() when encoding.
-- If the ordering of key-value pairs is absent, the encoding of the java.util.Map may not predictable, encoding of java.util.Set is similar.
+- ```java.util.TreeMap``` is recommended implementation of ```java.util.Map``` since key-value pairs in TreeMap are ordered.
+- ```java.util.TreeSet``` is recommended implementation of ```java.util.Set``` since keys in TreeSet are ordered.
+- Besides ```java.util.TreeMap```, the ordering of key-value pairs could be specified by ```@RLPEncoding.keyOrdering()``` when encoding.
+- Besides ```java.util.TreeSet```, the ordering of element could be specified by ```@RLPEncoding.keyOrdering()``` when encoding.
+- If the ordering of key-value pairs is absent, the encoding of the ```java.util.Map``` may not predictable, encoding of ```java.util.Set``` is similar.
 
 ## Examples
 
