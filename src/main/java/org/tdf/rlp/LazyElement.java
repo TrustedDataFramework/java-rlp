@@ -7,15 +7,17 @@ public class LazyElement implements RLPElement{
 
     private RLPParser parser;
 
-    public LazyElement(RLPParser parser) {
+    private LazyByteArray encoded;
+
+    LazyElement(RLPParser parser) {
         this.parser = parser;
+        this.encoded = parser.getLazyByteArray();
     }
 
     private void parse(){
         if (delegate != null) return;
         delegate = parser.readElement();
         // release gc
-        parser = null;
     }
 
     @Override
@@ -48,6 +50,7 @@ public class LazyElement implements RLPElement{
 
     @Override
     public byte[] getEncoded() {
+        if(delegate == null || isRLPItem()) return encoded.get();
         parse();
         return delegate.getEncoded();
     }

@@ -158,4 +158,8 @@ final class RLPParser {
     private boolean hasRemaining() {
         return offset < limit;
     }
+
+    LazyByteArray getLazyByteArray(){
+        return new LazyByteArray(raw, offset, limit);
+    }
 }
