@@ -8,21 +8,12 @@ Fast ethereum rlp decode & encode in java.
 - Supports POJO with a no-arguments constructor and at least one @RLP annotated field.
 - Supports container-like interfaces of java.util.Collection, java.util.List, java.util.Set, java.util.Queue, java.util.Deque, java.util.Map, java.util.ConcurrentMap and their implementations.
 - Generic field could be nested to any deepth.
-- The value in @RLP, should be natural ordered strictly, the following exmaple is not allowed, since ```@RLP(1)``` is missing.
+- The value in @RLP should be continously natural numbers.
 
-```java
-// WARNING: this is a negative exmapleta
-public class POJO{
-    @RLP(0)
-    public int field1;
-    @RLP(2)
-    public int field2;
-    @RLP(3)
-    public int field3;
-}
-``` 
-
-
+- null String will be encoded as empty String ```""```
+- ```true``` are encoded as ```1``` while ```false``` are encoded as ```0```
+- null value of Boolean, Byte, Short, Integer, Long and BigInteger will be encoded as zero 
+- null byte array ```byte[] bytes = null;``` will be encoded as empty byte array ```byte[] bytes = new byte[0];```
 
 ## Examples
 
