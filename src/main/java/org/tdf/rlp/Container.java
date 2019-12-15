@@ -31,16 +31,16 @@ public interface Container<V> {
     static Container fromNoGeneric(Class clazz) {
         if (Collection.class.isAssignableFrom(clazz)) {
             CollectionContainer con = new CollectionContainer();
-            Class contentType = RLPUtils.getGenericTypeRecursively(clazz, 0);
+            Class contentType = RLPUtils.getGenericTypeParameterRecursively(clazz, 0);
             con.contentType = contentType == null ? null : new Raw(contentType);
             con.collectionType = clazz;
             return con;
         }
         if (Map.class.isAssignableFrom(clazz)) {
             MapContainer con = new MapContainer();
-            Class keyType = RLPUtils.getGenericTypeRecursively(clazz, 0);
+            Class keyType = RLPUtils.getGenericTypeParameterRecursively(clazz, 0);
             con.keyType = keyType == null ? null : new Raw(keyType);
-            Class valueType = RLPUtils.getGenericTypeRecursively(clazz, 1);
+            Class valueType = RLPUtils.getGenericTypeParameterRecursively(clazz, 1);
             con.valueType = valueType == null ? null : new Raw(valueType);
             con.mapType = clazz;
             return con;

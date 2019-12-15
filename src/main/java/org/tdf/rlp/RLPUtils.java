@@ -56,7 +56,7 @@ final class RLPUtils {
         return newInstance(clazz);
     }
 
-    static Class getGenericTypeRecursively(Class clazz, final int index) {
+    static Class getGenericTypeParameterRecursively(Class clazz, final int index) {
         Optional<Class> o = Arrays.stream(clazz.getGenericInterfaces())
                 .filter(x -> x instanceof ParameterizedType)
                 .map(x -> (ParameterizedType) x)
@@ -76,7 +76,7 @@ final class RLPUtils {
             if (index < types.length && types[index] instanceof Class) return (Class) types[index];
         }
         if (clazz.getSuperclass() == null) return null;
-        return getGenericTypeRecursively(clazz.getSuperclass(), index);
+        return getGenericTypeParameterRecursively(clazz.getSuperclass(), index);
     }
 
     static <T> T newInstance(Class<T> clazz) {

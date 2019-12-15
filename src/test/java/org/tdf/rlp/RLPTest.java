@@ -1572,18 +1572,18 @@ public class RLPTest {
 
     @Test
     public void testGetElementType() throws Exception {
-        assert RLPUtils.getGenericTypeRecursively(ByteArraySet.class, 0) == byte[].class;
-        assert RLPUtils.getGenericTypeRecursively(Sub.class, 0) == byte[].class;
-        assert RLPUtils.getGenericTypeRecursively(TestSet.class, 0) == byte[].class;
-        assert RLPUtils.getGenericTypeRecursively(Collection.class, 0) == null;
-        assert RLPUtils.getGenericTypeRecursively(TestSet3.class, 0) == byte[].class;
-        assert RLPUtils.getGenericTypeRecursively(TestSet2.class, 0) == null;
-        assert RLPUtils.getGenericTypeRecursively(ByteArrayMap.class, 0) == byte[].class;
-        assert RLPUtils.getGenericTypeRecursively(ByteArrayMap.class, 1) == null;
-        assert RLPUtils.getGenericTypeRecursively(TestMap1.class, 0) == null;
-        assert RLPUtils.getGenericTypeRecursively(TestMap1.class, 1) == String.class;
-        assert RLPUtils.getGenericTypeRecursively(TestMap2.class, 0) == byte[].class;
-        assert RLPUtils.getGenericTypeRecursively(TestMap2.class, 1) == String.class;
+        assert RLPUtils.getGenericTypeParameterRecursively(ByteArraySet.class, 0) == byte[].class;
+        assert RLPUtils.getGenericTypeParameterRecursively(Sub.class, 0) == byte[].class;
+        assert RLPUtils.getGenericTypeParameterRecursively(TestSet.class, 0) == byte[].class;
+        assert RLPUtils.getGenericTypeParameterRecursively(Collection.class, 0) == null;
+        assert RLPUtils.getGenericTypeParameterRecursively(TestSet3.class, 0) == byte[].class;
+        assert RLPUtils.getGenericTypeParameterRecursively(TestSet2.class, 0) == null;
+        assert RLPUtils.getGenericTypeParameterRecursively(ByteArrayMap.class, 0) == byte[].class;
+        assert RLPUtils.getGenericTypeParameterRecursively(ByteArrayMap.class, 1) == null;
+        assert RLPUtils.getGenericTypeParameterRecursively(TestMap1.class, 0) == null;
+        assert RLPUtils.getGenericTypeParameterRecursively(TestMap1.class, 1) == String.class;
+        assert RLPUtils.getGenericTypeParameterRecursively(TestMap2.class, 0) == byte[].class;
+        assert RLPUtils.getGenericTypeParameterRecursively(TestMap2.class, 1) == String.class;
     }
 
     private static class Tree{
