@@ -15,9 +15,18 @@ Fast ethereum rlp decode & encode in java.
 - ```null``` values of Boolean, Byte, Short, Integer, Long and BigInteger will be encoded as ```0```
 - ```null``` byte array ```byte[] bytes = null``` will be encoded as empty byte array ```byte[] bytes = new byte[0]```
 
+## Notes on java.util.Collection and java.util.Map
+
+- Maps will be encoded as key-value pairs RLPList [key1, value1, key2, value2, ...]
+- java.util.TreeMap is recommended implementation of java.util.Map since key-value pairs in TreeMap are ordered.
+- java.util.TreeSet is recommended implementation of java.util.Set since keys in TreeSet is ordered.
+- Besides java.util.TreeMap, the ordering of key-value pairs could be specified by @RLPEncoding.keyOrdering() when encoding.
+- Besides java.util.TreeSet, the ordering of element could be specified by @RLPEncoding.keyOrdering() when encoding.
+- If the ordering of key-value pairs is absent, the encoding of the java.util.Map may not predictable, encoding of java.util.Set is similar.
+
 ## Examples
 
-- RLP encoding & decoding of your POJO.
+- RLP encoding & decoding of POJO.
 
 ```java
 package org.tdf.rlp;
@@ -35,6 +44,9 @@ public class Node{
 
     @RLP(1)
     public List<Node> children;
+
+    // field without @RLP will be ignored when encoding and decoding
+    public String ignored;
 
     // a no-argument constructor
     public Node() {
@@ -81,14 +93,6 @@ public class Node{
 
 - RLP encode & decode of POJO with tree-like field.
 
-- Notes on Collection and Map encode & decode
-    - Map are encoded as key-value pair RLPList [key1, value1, key2, value2, ...]
-    - TreeMap is recommended implementation of Map since key-value pair in TreeMap is ordered.
-    - TreeSet is recommended implementation of Set since key in TreeSet is ordered.
-    - Instead of TreeMap, you can specify the ordering of key-value pair in encoded RLPList by @RLPEncoding.keyOrdering().
-    - Instead of TreeSet, you can specify the ordering of element in encoded RLPList by @RLPEncoding.keyOrdering().
-    - If the Map or Set is not ordered and no ordering specified by annotation, the RLPList encoded is not determined. This may break the idempotency of rlp encoding.
-
 ```java
 public static class Tree{
     @RLP
@@ -119,7 +123,7 @@ public class Main{
 }
 ```
 
-- Tree-like encoding/decoding without wrapper class.
+- Tree-like type encode & deocde without wrapper class.
 
 ```java
 public class Main{
@@ -144,7 +148,7 @@ public class Main{
 ```
 
 
-- Custom encode & decode with annotation configuration.
+- Custom encode & decode with ```@RLPEncoding``` and ```@RLPDecoding``` configuration.
 
 ```java
 package org.tdf.rlp;
@@ -203,9 +207,16 @@ public class Main{
 }
 
 ```
-    
+
+## Benchmark see RLPTest.performanceDecode    
 
 Benchmark compare to EthereumJ:
+
+Platform: 
+
+- Motherborad: B450M
+- CPU: Ryzen 3700x, 8 core, 16 threads
+- Memory: (16GB x 2) DDR4 3200hz
 
 decoding list 10000000 times: 
 
