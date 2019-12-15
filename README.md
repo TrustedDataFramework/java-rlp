@@ -4,14 +4,14 @@ Fast ethereum rlp decode & encode in java.
 
 ## Notes
 
-- Supports RLP primitives of boolean, short, int, long, java.math.BigInteger and java.lang.String.
-- Supports POJO(Plain Ordinary Java Object) with at least one @RLP annotated field, a no-arguments constructor is required.
-- Supports container-like interfaces of java.util.Collection, java.util.List, java.util.Set, java.util.Queue, java.util.Deque, java.util.Map, java.util.ConcurrentMap and their no-abstract implementations.
-- Generic info of a field in POJO could be nested to any deepth.
-- The value in @RLP should be unique and continous.
+- Supports RLP primitives of ```boolean```, ```short```, ```int```, ```long```, ```java.math.BigInteger``` and ```String```.
+- Supports POJO(Plain Ordinary Java Object) with at least one ```@RLP``` annotated field, a no-arguments constructor is required.
+- Supports container-like interfaces of ```java.util.Collection```, ```java.util.List```, ```java.util.Set```, ```java.util.Queue```, ```java.util.Deque```, ```java.util.Map```, ```java.util.ConcurrentMap``` and their no-abstract implementations.
+- Generic info of fields in POJO class could be nested to arbitrary deepth.
+- Every value in ```@RLP``` of a POJO class should be unique and continous.
 
-- ```String s = null``` will be encoded as empty String ```String s = ""```.
-- ```true``` will be encoded as ```1``` while ```false``` will be encoded as ```0```
+- ```String s = null``` will be encoded as empty string ```String s = ""```.
+- For boolean, ```true``` will be encoded as ```1``` while ```false``` will be encoded as ```0```
 - ```null``` values of Boolean, Byte, Short, Integer, Long and BigInteger will be encoded as ```0```
 - ```null``` byte array ```byte[] bytes = null``` will be encoded as empty byte array ```byte[] bytes = new byte[0]```
 
@@ -148,7 +148,7 @@ public class Main{
 ```
 
 
-- Custom encode & decode with ```@RLPEncoding``` and ```@RLPDecoding``` configuration.
+- Custom encode & decode configured by ```@RLPEncoding``` and ```@RLPDecoding```.
 
 ```java
 package org.tdf.rlp;
