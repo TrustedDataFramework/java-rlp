@@ -16,5 +16,6 @@ public class ContainerTests {
     @Ignore
     public void test0(){
         Container container = RLPUtils.fromClass(TestMap1.class);
+        Container container2 = RLPUtils.fromType(TestMap1.class.getGenericInterfaces()[0]);
     }
 }
