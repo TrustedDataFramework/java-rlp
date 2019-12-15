@@ -2,9 +2,30 @@
 
 fast ethereum rlp decode/encode in java
 
-RLP Encoding/Decoding
+## Notes
 
-- declaring your pojo
+- supports RLP primitives of boolean, short, int, long, BigInteger, String
+- supports container-like interfaces of Collection, List, Set, Queue, Deque, Map, ConcurrentMap.
+- supports POJO with a no-arguments constructor and at least one @RLP annotated field
+Generic could be nested to any deepth.
+- the value in @RLP, should be ordered strictly, e.g. 
+
+```java
+public class POJO{
+    @RLP(0)
+    public int field1;
+    @RLP(2)
+    public int field2;
+    @RLP(3)
+    public int field3;
+}
+``` 
+
+is not allowed, since ```@RLP(1)``` is missing
+
+## Examples
+
+- RLP encoding/decoding of your pojo
 
 ```java
 package org.tdf.rlp;
@@ -64,8 +85,7 @@ public class Node{
 }
 ```
 
-
-- supports Collection, Map and POJO while set and and map is no ordered, generic could be nested to any deepth
+- RLP encoding/decoding of pojo with tree-like structure
 
 ```java
 public static class Tree{
@@ -100,7 +120,7 @@ public class Main{
 }
 ```
 
-- set and map encoding/decoding without wrapper by Container
+- tree-like encoding/decoding without wrapper
 
 ```java
 public class Main{
