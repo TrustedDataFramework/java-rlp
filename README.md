@@ -6,8 +6,8 @@ fast ethereum rlp decode/encode in java
 
 - supports RLP primitives of boolean, short, int, long, BigInteger, String
 - supports container-like interfaces of Collection, List, Set, Queue, Deque, Map, ConcurrentMap.
-- supports POJO with a no-arguments constructor and at least one @RLP annotated field
-Generic could be nested to any deepth.
+- supports POJO with a no-arguments constructor and at least one @RLP annotated field.
+- Generic field could be nested to any deepth.
 - the value in @RLP, should be ordered strictly, e.g. 
 
 ```java
