@@ -1,10 +1,7 @@
 package org.tdf.rlp;
 
 import java.lang.reflect.*;
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 final class RLPUtils {
@@ -66,7 +63,7 @@ final class RLPUtils {
                 .findFirst()
                 .map(x -> {
                     Type[] types = x.getActualTypeArguments();
-                    if(index < types.length && types[index] instanceof Class){
+                    if (index < types.length && types[index] instanceof Class) {
                         return (Class) types[index];
                     }
                     return null;
@@ -76,19 +73,48 @@ final class RLPUtils {
         Type type = clazz.getGenericSuperclass();
         if (type instanceof ParameterizedType) {
             Type[] types = ((ParameterizedType) type).getActualTypeArguments();
-            if(index < types.length && types[index] instanceof Class) return (Class) types[index];
+            if (index < types.length && types[index] instanceof Class) return (Class) types[index];
         }
         if (clazz.getSuperclass() == null) return null;
         return getGenericTypeRecursively(clazz.getSuperclass(), index);
     }
 
-    static <T> T newInstance(Class<T> clazz){
-        try{
+    static <T> T newInstance(Class<T> clazz) {
+        try {
             Constructor<T> con = clazz.getDeclaredConstructor();
             con.setAccessible(true);
             return con.newInstance();
-        }catch (Exception e){
+        } catch (Exception e) {
             throw new RuntimeException(clazz + " should has an no-argument constructor");
         }
+    }
+
+    static Container fromType(Type type) {
+        if (type instanceof Class) return fromClass((Class) type);
+        if(type instanceof ParameterizedType) return fromParameterizedType((ParameterizedType) type);
+        return null;
+    }
+
+    static Container fromClass(Class clazz) {
+        if(Collection.class.isAssignableFrom(clazz)){
+            // clazz my extends from a generic super class
+            // clazz my implements a generic interface
+        }
+        if(Map.class.isAssignableFrom(clazz)){
+
+        }
+        return new Raw(clazz);
+    }
+
+    static Container fromParameterizedType(ParameterizedType type){
+        Class clazz = (Class) type.getRawType();
+        Container con = fromClass(clazz);
+        switch (con.getType()){
+            case RAW: return con;
+            case MAP: {
+
+            }
+        }
+        return null;
     }
 }
