@@ -40,24 +40,24 @@ public class Node{
 
 
     public static void main(String[] args){
-        for(int i = 0; i < 10000; i++){
-            Node root = new Node("1");
-            root.addChildren(Arrays.asList(new Node("2"), new Node("3")));
-            Node node2 = root.children.get(0);
-            node2.addChildren(Arrays.asList(new Node("4"), new Node("5")));
-            root.children.get(1).addChildren(Arrays.asList(new Node("6"), new Node("7")));
+        boolean lazy = true;
+        Node root = new Node("1");
+        root.addChildren(Arrays.asList(new Node("2"), new Node("3")));
+        Node node2 = root.children.get(0);
+        node2.addChildren(Arrays.asList(new Node("4"), new Node("5")));
+        root.children.get(1).addChildren(Arrays.asList(new Node("6"), new Node("7")));
 
-            // encode to byte array
-            byte[] encoded = RLPCodec.encode(root);
+        // encode to byte array
+        byte[] encoded = RLPCodec.encode(root);
+        long start = System.currentTimeMillis();
+        for(int i = 0; i < 1000000; i++){
             // read as rlp tree
-            RLPElement el = RLPElement.readRLPTree(root);
-            // decode from byte array
-            Node root2 = RLPCodec.decode(encoded, Node.class);
-            el = RLPElement.fromEncoded(encoded);
-            // decode from rlp element
-            root2 = el.as(Node.class);
-            root2 = RLPCodec.decode(el, Node.class);
+            RLPElement el = RLPElement.fromEncoded(encoded, lazy);
+            el.as(Node.class);
+
         }
+        long end = System.currentTimeMillis();
+        System.out.println(end - start + " ms");
     }
 
     public static void assertTrue(boolean b){
