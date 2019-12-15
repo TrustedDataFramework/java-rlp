@@ -34,8 +34,4 @@ public class CollectionContainer<C extends Collection<T>, T> implements Containe
     public MapContainer<? extends Map<?, T>, ?, T> asMap() {
         throw new RuntimeException("not a map container");
     }
-
-    static <C extends Collection<V>, V> CollectionContainer<C, V> fromTypes(Class<C> collectionType, Class<V> elementType) {
-        return new CollectionContainer<>(collectionType, new Raw<>(elementType));
-    }
 }

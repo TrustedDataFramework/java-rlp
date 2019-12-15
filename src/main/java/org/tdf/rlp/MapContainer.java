@@ -35,8 +35,4 @@ public class MapContainer<M extends Map<K, V>, K, V> implements Container<V> {
     public MapContainer<? extends Map<?, V>, ?, V> asMap() {
         return this;
     }
-
-    static <M extends Map<K, V>, K, V> MapContainer<M, K, V> fromTypes(Class<M> mapTYpe, Class<K> keyType, Class<V> valueType) {
-        return new MapContainer<>(mapTYpe, new Raw<>(keyType), new Raw<>(valueType));
-    }
 }
