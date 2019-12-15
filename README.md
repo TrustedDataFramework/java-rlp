@@ -208,7 +208,9 @@ public class Main{
 
 ```
 
-## Benchmark see RLPTest.performanceDecode    
+## Benchmark 
+
+- see RLPTest.performanceDecode for benchmark
 
 Benchmark compare to EthereumJ:
 
