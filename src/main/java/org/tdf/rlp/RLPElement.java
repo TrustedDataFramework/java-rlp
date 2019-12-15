@@ -73,7 +73,7 @@ public interface RLPElement {
     // convert any object as a rlp tree
     static RLPElement readRLPTree(Object t) {
         if (t == null) return NULL;
-        if (t instanceof Boolean || t.getClass() == boolean.class) {
+        if (t.getClass() == boolean.class || t instanceof Boolean) {
             return ((Boolean) t) ? ONE : NULL;
         }
         if (t instanceof RLPElement) return (RLPElement) t;
@@ -85,16 +85,16 @@ public interface RLPElement {
         if (t instanceof byte[]) return RLPItem.fromBytes((byte[]) t);
         if (t instanceof String) return RLPItem.fromString((String) t);
         // terminals
-        if (t.getClass().equals(byte.class) || t instanceof Byte) {
+        if (t.getClass() == byte.class || (t instanceof Byte)) {
             return RLPItem.fromByte((byte) t);
         }
-        if (t instanceof Short || t.getClass().equals(short.class)) {
+        if (t.getClass() == short.class || t instanceof Short) {
             return RLPItem.fromShort((short) t);
         }
-        if (t instanceof Integer || t.getClass().equals(int.class)) {
+        if (t.getClass() == int.class || t instanceof Integer) {
             return RLPItem.fromInt((int) t);
         }
-        if (t instanceof Long || t.getClass().equals(long.class)) {
+        if (t.getClass() == long.class || t instanceof Long) {
             return RLPItem.fromLong((long) t);
         }
         if (t instanceof Map) {
@@ -116,41 +116,27 @@ public interface RLPElement {
             throw new RuntimeException(t.getClass() + " is not supported, no @RLP annotation found");
         return new RLPList(fields.stream().map(f -> {
             f.setAccessible(true);
+            Object o;
             try {
-                if (f.get(t) == null) return NULL;
+                o = f.get(t);
             } catch (IllegalAccessException e) {
                 throw new RuntimeException(e);
             }
+            if(o == null) return NULL;
             RLPEncoder fieldEncoder = RLPUtils.getAnnotatedRLPEncoder(f);
             if (fieldEncoder != null) {
-                try {
-                    return fieldEncoder.encode(f.get(t));
-                } catch (Exception e) {
-                    throw new RuntimeException(e);
-                }
+                return fieldEncoder.encode(o);
             }
             Comparator comparator = RLPUtils.getContentOrdering(f);
             if (Collection.class.isAssignableFrom(f.getType())) {
-                try {
-                    return RLPCodec.encodeCollection((Collection) f.get(t), comparator);
-                } catch (Exception e) {
-                    throw new RuntimeException("get field " + f + " failed " + e.getCause());
-                }
+                return RLPCodec.encodeCollection((Collection) o, comparator);
             }
             comparator = RLPUtils.getKeyOrdering(f);
             if (Map.class.isAssignableFrom(f.getType())) {
-                try {
-                    Map m = (Map) f.get(t);
-                    return RLPCodec.encodeMap(m, comparator);
-                } catch (Exception e) {
-                    throw new RuntimeException(e);
-                }
+                Map m = (Map) o;
+                return RLPCodec.encodeMap(m, comparator);
             }
-            try {
-                return readRLPTree(f.get(t));
-            } catch (Exception e) {
-                throw new RuntimeException(e);
-            }
+            return readRLPTree(o);
         }).collect(Collectors.toList()));
     }
 

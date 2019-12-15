@@ -1492,29 +1492,6 @@ public class RLPTest {
         }
     }
 
-    @Test
-    public void testMapContainer() {
-        Map<String, String> map = new HashMap<>();
-        map.put("key", "value");
-        byte[] encoded = RLPCodec.encode(map);
-        TreeMap<String, String> m2 = RLPCodec.decodeMap(encoded,
-                TreeMap.class, String.class, String.class);
-        assert m2.get("key").equals("value");
-    }
-
-    @Test
-    public void testCollectionContainer() {
-        Set<byte[]> set = new HashSet<>();
-        set.add("1".getBytes());
-        set.add("2".getBytes());
-        byte[] encoded = RLPCodec.encode(set);
-        set = RLPCodec.decodeCollection(encoded, ByteArraySet.class, byte[].class);
-        ByteArraySet s2 = RLPCodec.decodeCollection(encoded, ByteArraySet.class, byte[].class);
-        assert set instanceof ByteArraySet;
-        assert set.contains("1".getBytes());
-        assert set.contains("2".getBytes());
-    }
-
     private abstract class Dummy {
         private List<ByteArraySet> dummy;
     }

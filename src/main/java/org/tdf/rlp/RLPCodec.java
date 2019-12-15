@@ -3,7 +3,6 @@ package org.tdf.rlp;
 import lombok.NonNull;
 
 import java.lang.reflect.Array;
-import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.math.BigInteger;
@@ -27,10 +26,9 @@ public final class RLPCodec {
         if (clazz == RLPElement.class) return (T) element;
         if (clazz == RLPList.class) return (T) element.asRLPList();
         if (clazz == RLPItem.class) return (T) element.asRLPItem();
-        if (clazz == boolean.class || clazz == Boolean.class) return (T) Boolean.valueOf(element.asBoolean());
         RLPDecoder decoder = RLPUtils.getAnnotatedRLPDecoder(clazz);
         if (decoder != null) return (T) decoder.decode(element);
-        // non null terminals
+        if (clazz == boolean.class || clazz == Boolean.class) return (T) Boolean.valueOf(element.asBoolean());
         if (clazz == Byte.class || clazz == byte.class) {
             return (T) Byte.valueOf(element.asByte());
         }
@@ -57,9 +55,9 @@ public final class RLPCodec {
         if (element.isNull()) return null;
         if (clazz.isArray()) {
             Class elementType = clazz.getComponentType();
-            Object res = Array.newInstance(clazz.getComponentType(), element.asRLPList().size());
-            for (int i = 0; i < element.asRLPList().size(); i++) {
-                Array.set(res, i, decode(element.asRLPList().get(i), elementType));
+            Object res = Array.newInstance(clazz.getComponentType(), element.size());
+            for (int i = 0; i < element.size(); i++) {
+                Array.set(res, i, decode(element.get(i), elementType));
             }
             return (T) res;
         }
@@ -70,20 +68,11 @@ public final class RLPCodec {
         ) {
             return (T) decodeContainer(element, Container.fromNoGeneric(clazz));
         }
-        T o;
-
-        try {
-            Constructor<T> con = clazz.getDeclaredConstructor();
-            con.setAccessible(true);
-            o = con.newInstance();
-        } catch (Exception e) {
-            throw new RuntimeException(clazz + " should has a no arguments constructor");
-        }
-
+        T o = RLPUtils.newInstance(clazz);
         List<Field> fields = RLPUtils.getRLPFields(clazz);
-        if (fields.size() == 0) throw new RuntimeException(clazz + " is not supported not RLP annotation found");
+        if (fields.size() == 0) throw new RuntimeException(clazz + " is not supported no @RLP annotation found");
         for (int i = 0; i < fields.size(); i++) {
-            RLPElement el = element.asRLPList().get(i);
+            RLPElement el = element.get(i);
             Field f = fields.get(i);
             f.setAccessible(true);
             RLPDecoder fieldDecoder = RLPUtils.getAnnotatedRLPDecoder(f);
@@ -96,10 +85,9 @@ public final class RLPCodec {
                 continue;
             }
 
+            if(el.isNull()) continue;
+
             try {
-                if (el.isNull()) {
-                    continue;
-                }
                 Container container = fromField(f);
                 f.set(o, decodeContainer(el, container));
             } catch (Exception e) {
@@ -264,17 +252,6 @@ public final class RLPCodec {
         return list;
     }
 
-    public static <M extends Map<K, V>, K, V> M decodeMap
-            (byte[] encoded, Class<M> mapType, Class<K> keyType, Class<V> valueType) {
-        return (M) decodeContainer(RLPElement.fromEncoded(encoded), MapContainer.fromTypes(mapType, keyType, valueType));
-    }
-
-    public static <C extends Collection<V>, V> C decodeCollection
-            (byte[] encoded, Class<C> collectionType, Class<V> elementType) {
-        return (C) decodeContainer(RLPElement.fromEncoded(encoded),
-                CollectionContainer.fromTypes(collectionType, elementType));
-    }
-
     public static Object decodeContainer(byte[] encoded, Container container) {
         return decodeContainer(RLPElement.fromEncoded(encoded), container);
     }
@@ -285,31 +262,23 @@ public final class RLPCodec {
             case RAW:
                 return decode(element, container.asRaw());
             case COLLECTION: {
-                try {
-                    CollectionContainer collectionContainer = container.asCollection();
-                    Collection res = (Collection) getDefaultImpl(collectionContainer.collectionType).newInstance();
-                    for (int i = 0; i < element.size(); i++) {
-                        res.add(decodeContainer(element.get(i), collectionContainer.contentType));
-                    }
-                    return res;
-                } catch (Exception e) {
-                    throw new RuntimeException(e);
+                CollectionContainer collectionContainer = container.asCollection();
+                Collection res = (Collection) RLPUtils.newInstance(getDefaultImpl(collectionContainer.collectionType));
+                for (int i = 0; i < element.size(); i++) {
+                    res.add(decodeContainer(element.get(i), collectionContainer.contentType));
                 }
+                return res;
             }
             case MAP: {
-                try {
-                    MapContainer mapContainer = container.asMap();
-                    Map res = (Map) getDefaultImpl(mapContainer.mapType).newInstance();
-                    for (int i = 0; i < element.size(); i += 2) {
-                        res.put(
-                                decodeContainer(element.get(i), mapContainer.keyType),
-                                decodeContainer(element.get(i + 1), mapContainer.valueType)
+                MapContainer mapContainer = container.asMap();
+                Map res = (Map) RLPUtils.newInstance(getDefaultImpl(mapContainer.mapType));
+                for (int i = 0; i < element.size(); i += 2) {
+                    res.put(
+                            decodeContainer(element.get(i), mapContainer.keyType),
+                            decodeContainer(element.get(i + 1), mapContainer.valueType)
                         );
-                    }
-                    return res;
-                } catch (Exception e) {
-                    throw new RuntimeException(e);
                 }
+                return res;
             }
         }
         throw new RuntimeException("unreachable");

@@ -16,13 +16,7 @@ final class RLPUtils {
         if (encoder == RLPEncoder.None.class) {
             return null;
         }
-        try {
-            Constructor<? extends RLPEncoder> con = encoder.getDeclaredConstructor();
-            con.setAccessible(true);
-            return con.newInstance();
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
+        return newInstance(encoder);
     }
 
     static RLPDecoder getAnnotatedRLPDecoder(AnnotatedElement element) {
@@ -33,13 +27,7 @@ final class RLPUtils {
         if (decoder == RLPDecoder.None.class) {
             return null;
         }
-        try {
-            Constructor<? extends RLPDecoder> con = decoder.getDeclaredConstructor();
-            con.setAccessible(true);
-            return con.newInstance();
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
+        return newInstance(decoder);
     }
 
     static List<Field> getRLPFields(Class clazz) {
@@ -59,13 +47,7 @@ final class RLPUtils {
         }
         Class<? extends Comparator> clazz = element.getAnnotation(RLPEncoding.class).contentOrdering();
         if (clazz == RLPEncoding.None.class) return null;
-        try {
-            Constructor<? extends Comparator> con = clazz.getDeclaredConstructor();
-            con.setAccessible(true);
-            return con.newInstance();
-        } catch (Exception e) {
-            throw new RuntimeException("new instance of " + clazz + " failed " + e.getMessage());
-        }
+        return newInstance(clazz);
     }
 
     static Comparator getKeyOrdering(AnnotatedElement element) {
@@ -74,13 +56,7 @@ final class RLPUtils {
         }
         Class<? extends Comparator> clazz = element.getAnnotation(RLPEncoding.class).keyOrdering();
         if (clazz == RLPEncoding.None.class) return null;
-        try {
-            Constructor<? extends Comparator> con = clazz.getDeclaredConstructor();
-            con.setAccessible(true);
-            return con.newInstance();
-        } catch (Exception e) {
-            throw new RuntimeException("new instance of " + clazz + " failed " + e.getCause());
-        }
+        return newInstance(clazz);
     }
 
     static Class getGenericTypeRecursively(Class clazz, final int index) {
@@ -100,5 +76,15 @@ final class RLPUtils {
         }
         if (clazz.getSuperclass() == null) return null;
         return getGenericTypeRecursively(clazz.getSuperclass(), index);
+    }
+
+    static <T> T newInstance(Class<T> clazz){
+        try{
+            Constructor<T> con = clazz.getDeclaredConstructor();
+            con.setAccessible(true);
+            return con.newInstance();
+        }catch (Exception e){
+            throw new RuntimeException(clazz + " should has an no-argument constructor");
+        }
     }
 }
