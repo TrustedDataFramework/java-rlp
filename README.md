@@ -90,12 +90,13 @@ public class Node{
 
 - RLP encode & decode of POJO with tree-like field.
 
-- Map are encoded as key-value pair RLPList [key1, value1, key2, value2, ...]
-- TreeMap is recommended implementation of Map since key-value pair in TreeMap is ordered.
-- TreeSet is recommended implementation of Set since key in TreeSet is ordered.
-- Instead of TreeMap, you can specify the ordering of key-value pair in encoded RLPList by @RLPEncoding.keyOrdering().
-- Instead of TreeSet, you can specify the ordering of element in encoded RLPList by @RLPEncoding.keyOrdering().
-- If the Map or Set is not ordered and no ordering specified by annotation, the RLPList encoded is not determined. This may break the idempotency of rlp encoding.
+- Notes on Collection and Map encode & decode
+    - Map are encoded as key-value pair RLPList [key1, value1, key2, value2, ...]
+    - TreeMap is recommended implementation of Map since key-value pair in TreeMap is ordered.
+    - TreeSet is recommended implementation of Set since key in TreeSet is ordered.
+    - Instead of TreeMap, you can specify the ordering of key-value pair in encoded RLPList by @RLPEncoding.keyOrdering().
+    - Instead of TreeSet, you can specify the ordering of element in encoded RLPList by @RLPEncoding.keyOrdering().
+    - If the Map or Set is not ordered and no ordering specified by annotation, the RLPList encoded is not determined. This may break the idempotency of rlp encoding.
 
 ```java
 public static class Tree{
