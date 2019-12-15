@@ -1,16 +1,17 @@
 # java-rlp
 
-fast ethereum rlp decode/encode in java
+Fast ethereum rlp decode & encode in java.
 
 ## Notes
 
-- supports RLP primitives of boolean, short, int, long, BigInteger, String
-- supports container-like interfaces of Collection, List, Set, Queue, Deque, Map, ConcurrentMap.
-- supports POJO with a no-arguments constructor and at least one @RLP annotated field.
+- Supports RLP primitives of boolean, short, int, long, java.math.BigInteger, java.lang.String.
+- Supports POJO with a no-arguments constructor and at least one @RLP annotated field.
+- Supports container-like interfaces of java.util.Collection, java.util.List, java.util.Set, java.util.Queue, java.util.Deque, java.util.Map, java.util.ConcurrentMap and their implementations.
 - Generic field could be nested to any deepth.
-- the value in @RLP, should be ordered strictly, e.g. 
+- The value in @RLP, should be natural ordered strictly, the following exmaple is not allowed, since ```@RLP(1)``` is missing.
 
 ```java
+// WARNING: this is a negative exmapleta
 public class POJO{
     @RLP(0)
     public int field1;
@@ -21,11 +22,11 @@ public class POJO{
 }
 ``` 
 
-is not allowed, since ```@RLP(1)``` is missing
+
 
 ## Examples
 
-- RLP encoding/decoding of your pojo
+- RLP encoding & decoding of your POJO.
 
 ```java
 package org.tdf.rlp;
@@ -35,6 +36,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
+// RLP could encode & decode Tree-like object.
 public class Node{
     // RLP annotation specify the order of field in encoded list
     @RLP(0)
@@ -85,17 +87,21 @@ public class Node{
 }
 ```
 
-- RLP encoding/decoding of pojo with tree-like structure
+- RLP encode & decode of POJO with tree-like field.
+
+- Map are encoded as key-value pair RLPList [key1, value1, key2, value2, ...]
+- TreeMap is recommended implementation of Map since key-value pair in TreeMap is ordered.
+- TreeSet is recommended implementation of Set since key in TreeSet is ordered.
+- Instead of TreeMap, you can specify the ordering of key-value pair in encoded RLPList by @RLPEncoding.keyOrdering().
+- Instead of TreeSet, you can specify the ordering of element in encoded RLPList by @RLPEncoding.keyOrdering().
+- If the Map or Set is not ordered and no ordering specified by annotation, the RLPList encoded is not determined. This may break the idempotency of rlp encoding.
 
 ```java
 public static class Tree{
     @RLP
-    @RLPDecoding(as = ConcurrentHashMap.class 
-        /* the type of deserialized tree will be ConcurrentHashMap instead of defualt implementation HashMap*/ 
-    ) 
-    // map are serialized as RLPList [key, value, key, value, ...] 
-    // use @RLPEncoding.keyOrdering() to specify the ordering of key-value pair
-    // use @RLPEncoding.contentOrdering() to speficy the ordering of set or anther collection type
+    @RLPDecoding(as = ConcurrentHashMap.class) 
+    /* The decoded type will be java.util.concurrent.ConcurrentHashMap 
+    instead of java.util.HashMap which is the default implementation of java.util.Map. */ 
     public Map<ByteArrayMap<Set<String>>, byte[]> tree;
 }
 ```    
@@ -120,7 +126,7 @@ public class Main{
 }
 ```
 
-- tree-like encoding/decoding without wrapper
+- Tree-like encoding/decoding without wrapper class.
 
 ```java
 public class Main{
@@ -145,7 +151,7 @@ public class Main{
 ```
 
 
-- custom encoding/decoding
+- Custom encode & decode with annotation configuration.
 
 ```java
 package org.tdf.rlp;
