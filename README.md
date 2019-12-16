@@ -101,7 +101,7 @@ public static class Tree{
     instead of java.util.HashMap which is the default implementation of java.util.Map. */ 
     public Map<Map<String, Set<String>>, byte[]> tree;
 
-    // although ByteArrayMap in ethereumJ is not supported by default, you can enable it by annotaion
+    // although ByteArrayMap in ethereumJ is not supported by default, you can enable it by annotation
     @RLP(1)
     @RLPDecoding(as = ByteArrayMap.class)
     public Map<byte[], String> stringMap;
