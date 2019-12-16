@@ -8,14 +8,14 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
 public interface Container<V> {
-    Set<Class> SUPPORTED_MAPS = new HashSet(
+    Set<Class<? extends Map>> SUPPORTED_MAPS = new HashSet<>(
             Arrays.asList(
             Map.class, HashMap.class,
             ConcurrentMap.class, ConcurrentHashMap.class,
             TreeMap.class)
     );
 
-    Set<Class> SUPPORTED_COLLECTIONS = new HashSet(Arrays.asList(
+    Set<Class<? extends Collection>> SUPPORTED_COLLECTIONS = new HashSet<>(Arrays.asList(
             Collection.class, List.class, ArrayList.class,
             Set.class, Queue.class, Deque.class,
             HashSet.class, TreeSet.class, LinkedList.class,
@@ -28,10 +28,11 @@ public interface Container<V> {
         if (field.isAnnotationPresent(RLPDecoding.class)) {
             clazz = field.getAnnotation(RLPDecoding.class).as();
         }
-
         if (clazz == null || clazz == Void.class) return container;
+        if(!Collection.class.isAssignableFrom(clazz) && !Map.class.isAssignableFrom(clazz))
+            throw new RuntimeException("@RLPDecoding.as must be a collection of map type while " + clazz.getName() + " found");
         if (container.getType() == ContainerType.RAW)
-            throw new RuntimeException("@RLPDecoding.as is used on collection or map type");
+            throw new RuntimeException("@RLPDecoding.as is used on collection or map typed field other than " + field.getName());
         if (!field.getType().isAssignableFrom(clazz))
             throw new RuntimeException("cannot assign " + clazz + " as " + field.getType());
         if (container.getType() == ContainerType.COLLECTION) {
