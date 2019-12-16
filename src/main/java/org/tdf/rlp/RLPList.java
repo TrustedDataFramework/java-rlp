@@ -24,7 +24,7 @@ public final class RLPList implements RLPElement, List<RLPElement> {
         return new RLPList(new ArrayList<>(cap));
     }
 
-    public List<RLPElement> elements = new ArrayList<>();
+    private List<RLPElement> elements = new ArrayList<>();
 
     private LazyByteArray encoded;
 
