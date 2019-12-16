@@ -152,6 +152,7 @@ public final class RLPItem implements RLPElement {
     }
 
     public String asString() {
+        if(isNull()) return "";
         return new String(asBytes(), StandardCharsets.UTF_8);
     }
 
