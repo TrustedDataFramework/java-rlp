@@ -40,12 +40,16 @@ final class RLPUtils {
         return fields;
     }
 
-    static Comparator getKeyOrdering(AnnotatedElement element) {
-        if (!element.isAnnotationPresent(RLPEncoding.class)) {
+    static Comparator getKeyOrdering(Field field) {
+        if (!field.isAnnotationPresent(RLPEncoding.class)) {
             return null;
         }
-        Class<? extends Comparator> clazz = element.getAnnotation(RLPEncoding.class).keyOrdering();
+        Class<? extends Comparator> clazz = field.getAnnotation(RLPEncoding.class).keyOrdering();
         if (clazz == RLPEncoding.None.class) return null;
+        if(!Map.class.isAssignableFrom(field.getType()) && !Set.class.isAssignableFrom(field.getType()))
+            throw new RuntimeException("@RLPEncoding.keyOrdering() is used on Map or Set other than "
+                    + field.getName() + " "
+                    + field.getType().getName());
         return newInstance(clazz);
     }
 
