@@ -99,7 +99,7 @@ public static class Tree{
     @RLPDecoding(as = ConcurrentHashMap.class) 
     /* The decoded type will be java.util.concurrent.ConcurrentHashMap 
     instead of java.util.HashMap which is the default implementation of java.util.Map. */ 
-    public Map<ByteArrayMap<Set<String>>, byte[]> tree;
+    public Map<Map<String, Set<String>>, byte[]> tree;
 }
 ```    
 
@@ -108,17 +108,17 @@ public class Main{
     public static void main(String[] args){
         Tree tree = new Tree();
         tree.tree = new HashMap<>();
-        ByteArrayMap<Set<String>> map = new ByteArrayMap<>();
-        map.put("1".getBytes(), new HashSet<>(Arrays.asList("1", "2", "3")));
+        Map<String, Set<String>> map = new HashMap<>();
+        map.put("1", new HashSet<>(Arrays.asList("1", "2", "3")));
         tree.tree.put(map, "1".getBytes());
         byte[] encoded = RLPCodec.encode(tree);
         RLPElement el = RLPElement.fromEncoded(encoded, false);
         Tree tree1 = RLPCodec.decode(encoded, Tree.class);
         assert tree1.tree instanceof ConcurrentHashMap;
-        ByteArrayMap<Set<String>> tree2 = tree1.tree.keySet().stream()
+        Map<String, Set<String>> tree2 = tree1.tree.keySet().stream()
                 .findFirst().get();
         assert Arrays.equals(tree1.tree.get(tree2), "1".getBytes());
-        assert tree2.get("1".getBytes()).containsAll(Arrays.asList("1", "2", "3"));
+        assert tree2.get("1").containsAll(Arrays.asList("1", "2", "3"));
     }
 }
 ```
@@ -129,20 +129,20 @@ public class Main{
 public class Main{
     // store generic info in a dummy field
     private abstract class Dummy2 {
-        private List<ByteArrayMap<String>> dummy;
+        private List<Map<String, String>> dummy;
     }
 
     public static void main(String[] args) throws Exception{
-        List<ByteArrayMap<String>> list = new ArrayList<>();
-        list.add(new ByteArrayMap<>());
-        list.get(0).put("1".getBytes(), "1");
+        List<Map<String, String>> list = new ArrayList<>();
+        list.add(new HashMap<>());
+        list.get(0).put("1", "1");
 
-        List<Map<byte[], String>> decoded = (List<Map<byte[], String>>) RLPCodec.decodeContainer(
+        List<Map<String, String>> decoded = (List<Map<String, String>>) RLPCodec.decodeContainer(
                 RLPCodec.encode(list),
                 Container.fromField(Dummy2.class.getDeclaredField("dummy"))
         );
 
-        assert decoded.get(0).get("1".getBytes()).equals("1");
+        assert decoded.get(0).get("1").equals("1");
     }
 }
 ```
@@ -207,6 +207,8 @@ public class Main{
 }
 
 ```
+
+## Do not use container as generic variable in your 
 
 ## Benchmark 
 

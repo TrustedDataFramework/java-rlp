@@ -14,6 +14,7 @@ import java.util.stream.Stream;
 
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
+import static org.tdf.rlp.Container.fromField;
 import static org.tdf.rlp.Container.fromType;
 import static org.tdf.rlp.RLPCodec.*;
 import static org.tdf.rlp.RLPItem.NULL;
@@ -1409,10 +1410,10 @@ public class RLPTest {
 
     @Test
     public void testContainer() throws Exception {
-        Container con = fromType(Con.class.getField("sss").getGenericType());
-        Container con2 = fromType(Con.class.getField("ccc").getGenericType());
-        Container con3 = fromType(Con.class.getField("vvv").getGenericType());
-        Container con4 = fromType(Con.class.getField("li").getGenericType());
+        Container con = fromField(Con.class.getField("sss"));
+        Container con2 = fromField(Con.class.getField("ccc"));
+        Container con3 = fromField(Con.class.getField("vvv"));
+        Container con4 = fromField(Con.class.getField("li"));
     }
 
     public static class MapWrapper2 {
@@ -1490,137 +1491,5 @@ public class RLPTest {
         for (int j = 0; j < el.size(); j++) {
             assert new BigInteger(1, el.get(j).asBytes()).compareTo(BigInteger.valueOf(j + 1)) == 0;
         }
-    }
-
-    private abstract class Dummy {
-        private List<ByteArraySet> dummy;
-    }
-
-    private abstract class Dummy2 {
-        private List<ByteArrayMap<String>> dummy;
-    }
-
-    @Test
-    public void test3() {
-        List<Set<byte[]>> list = new ArrayList<>();
-        list.add(new ByteArraySet());
-        list.get(0).add("1".getBytes());
-        Container container = CollectionContainer.builder()
-                .collectionType(ArrayList.class)
-                .contentType(
-                        CollectionContainer.builder()
-                                .collectionType(ByteArraySet.class)
-                                .contentType(new Raw(byte[].class))
-                                .build()
-                )
-                .build();
-        List<Set<byte[]>> decoded = (List<Set<byte[]>>) RLPCodec.decodeContainer(
-                RLPCodec.encode(list),
-                container
-        );
-
-        assert decoded.get(0).contains("1".getBytes());
-    }
-
-    @Test
-    public void testdummy() throws Exception {
-        List<Set<byte[]>> list = new ArrayList<>();
-        list.add(new HashSet<>());
-        list.get(0).add("1".getBytes());
-
-        List<Set<byte[]>> decoded = (List<Set<byte[]>>) RLPCodec.decodeContainer(
-                RLPCodec.encode(list),
-                Container.fromField(Dummy.class.getDeclaredField("dummy"))
-        );
-
-        assert decoded.get(0).contains("1".getBytes());
-    }
-
-    @Test
-    public void testdummy2() throws Exception {
-        List<ByteArrayMap<String>> list = new ArrayList<>();
-        list.add(new ByteArrayMap<>());
-        list.get(0).put("1".getBytes(), "1");
-
-        List<Map<byte[], String>> decoded = (List<Map<byte[], String>>) RLPCodec.decodeContainer(
-                RLPCodec.encode(list),
-                Container.fromField(Dummy2.class.getDeclaredField("dummy"))
-        );
-
-        assert decoded.get(0).get("1".getBytes()).equals("1");
-    }
-
-    private static class Sub extends ByteArraySet {
-    }
-
-    private static class TestSet extends HashSet<byte[]> {
-    }
-
-    private static class TestSet2<V> extends HashSet<V> {
-    }
-
-    private static class TestSet3 extends TestSet2<byte[]> {
-    }
-
-    private static class TestMap1<K> extends HashMap<K, String> {
-    }
-
-    ;
-
-    private static class TestMap2 extends TestMap1<byte[]> {
-    }
-
-    @Test
-    public void testGetElementType() throws Exception {
-        assert RLPUtils.getGenericTypeParameterRecursively(ByteArraySet.class, 0) == byte[].class;
-        assert RLPUtils.getGenericTypeParameterRecursively(Sub.class, 0) == byte[].class;
-        assert RLPUtils.getGenericTypeParameterRecursively(TestSet.class, 0) == byte[].class;
-        assert RLPUtils.getGenericTypeParameterRecursively(Collection.class, 0) == null;
-        assert RLPUtils.getGenericTypeParameterRecursively(TestSet3.class, 0) == byte[].class;
-        assert RLPUtils.getGenericTypeParameterRecursively(TestSet2.class, 0) == null;
-        assert RLPUtils.getGenericTypeParameterRecursively(ByteArrayMap.class, 0) == byte[].class;
-        assert RLPUtils.getGenericTypeParameterRecursively(ByteArrayMap.class, 1) == null;
-        assert RLPUtils.getGenericTypeParameterRecursively(TestMap1.class, 0) == null;
-        assert RLPUtils.getGenericTypeParameterRecursively(TestMap1.class, 1) == String.class;
-        assert RLPUtils.getGenericTypeParameterRecursively(TestMap2.class, 0) == byte[].class;
-        assert RLPUtils.getGenericTypeParameterRecursively(TestMap2.class, 1) == String.class;
-    }
-
-    private static class Tree{
-        @RLP
-        @RLPDecoding(as = ConcurrentHashMap.class)
-        Map<ByteArrayMap<Set<String>>, byte[]> tree;
-    }
-
-    @Test
-    public void testMapTree() {
-        Tree tree = new Tree();
-        tree.tree = new HashMap<>();
-        ByteArrayMap<Set<String>> map = new ByteArrayMap<>();
-        map.put("1".getBytes(), new HashSet<>(Arrays.asList("1", "2", "3")));
-        tree.tree.put(map, "1".getBytes());
-        byte[] encoded = RLPCodec.encode(tree);
-        RLPElement el = RLPElement.fromEncoded(encoded, false);
-        Tree tree1 = RLPCodec.decode(encoded, Tree.class);
-        assert tree1.tree instanceof ConcurrentHashMap;
-        ByteArrayMap<Set<String>> tree2 = tree1.tree.keySet().stream()
-                .findFirst().get();
-        assert Arrays.equals(tree1.tree.get(tree2), "1".getBytes());
-        assert tree2.get("1".getBytes()).containsAll(Arrays.asList("1", "2", "3"));
-    }
-
-    @Test
-    public void testMap2(){
-        Map<String, String> m = new HashMap<>();
-        m.put("1", "2");
-        Map m2 = RLPCodec.decode(RLPCodec.encode(m), Map.class);
-        assert ((RLPElement) m2.keySet().stream().findFirst().get()).asString().equals("1");
-        Map<byte[], RLPElement> m3 = RLPCodec.decode(RLPCodec.encode(m), ByteArrayMap.class);
-        assert m3.get("1".getBytes()).asString().equals("2");
-    }
-
-    @Test
-    public void test11(){
-        Container con = Container.fromType(ByteArrayMap.class.getGenericInterfaces()[0]);
     }
 }

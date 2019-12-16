@@ -3,10 +3,25 @@ package org.tdf.rlp;
 import java.lang.reflect.Field;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
-import java.util.Collection;
-import java.util.Map;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 public interface Container<V> {
+    Set<Class> SUPPORTED_MAPS = new HashSet(
+            Arrays.asList(
+            Map.class, HashMap.class,
+            ConcurrentMap.class, ConcurrentHashMap.class,
+            TreeMap.class)
+    );
+
+    Set<Class> SUPPORTED_COLLECTIONS = new HashSet(Arrays.asList(
+            Collection.class, List.class, ArrayList.class,
+            Set.class, Queue.class, Deque.class,
+            HashSet.class, TreeSet.class, LinkedList.class,
+            ArrayDeque.class)
+    );
+
     static Container<?> fromField(Field field) {
         Container<?> container = fromType(field.getGenericType());
         Class clazz = null;
@@ -28,22 +43,20 @@ public interface Container<V> {
         return container;
     }
 
+    // from class without generic variable
     static Container fromClass(Class clazz) {
         if (Collection.class.isAssignableFrom(clazz)) {
-            CollectionContainer con = new CollectionContainer();
-            Class contentType = RLPUtils.getGenericTypeParameterRecursively(clazz, 0);
-            con.contentType = contentType == null ? null : new Raw(contentType);
-            con.collectionType = clazz;
-            return con;
+            if(!SUPPORTED_COLLECTIONS.contains(clazz))
+                throw new RuntimeException(clazz + " is not supported, please use one of type "
+                        + SUPPORTED_COLLECTIONS.stream().map(x -> x.getName()).reduce("", String::concat)
+                );
+            return new CollectionContainer(clazz);
         }
         if (Map.class.isAssignableFrom(clazz)) {
-            MapContainer con = new MapContainer();
-            Class keyType = RLPUtils.getGenericTypeParameterRecursively(clazz, 0);
-            con.keyType = keyType == null ? null : new Raw(keyType);
-            Class valueType = RLPUtils.getGenericTypeParameterRecursively(clazz, 1);
-            con.valueType = valueType == null ? null : new Raw(valueType);
-            con.mapType = clazz;
-            return con;
+            if(!SUPPORTED_MAPS.contains(clazz))
+                throw new RuntimeException(clazz + " is not supported, please use one of type "
+                        + SUPPORTED_MAPS.stream().map(x -> x.getName()).reduce("", String::concat));
+            return new MapContainer(clazz);
         }
         return new Raw(clazz);
     }
@@ -52,7 +65,8 @@ public interface Container<V> {
         if (type instanceof Class) {
             return fromClass((Class) type);
         }
-        if (!(type instanceof ParameterizedType)) throw new RuntimeException(type + " is not allowed in rlp decoding");
+        if (!(type instanceof ParameterizedType))
+            throw new RuntimeException("type variable " + type + " is not allowed in rlp decoding");
         ParameterizedType parameterizedType = (ParameterizedType) type;
         Type[] types = parameterizedType.getActualTypeArguments();
         Class clazz = (Class) parameterizedType.getRawType();
@@ -62,20 +76,13 @@ public interface Container<V> {
                 return container;
             case MAP: {
                 MapContainer con = container.asMap();
-                int i = 0;
-                if (con.keyType == null) {
-                    con.keyType = i < types.length ? fromType(types[i++]) : null;
-                }
-                if(con.valueType == null){
-                    con.valueType = i < types.length ? fromType(types[i++]) : null;
-                }
+                con.keyType = fromType(types[0]);
+                con.valueType = fromType(types[1]);
                 return con;
             }
             case COLLECTION: {
                 CollectionContainer con = container.asCollection();
-                if (con.contentType == null) {
-                    con.contentType = 0 < types.length ? fromType(types[0]) : null;
-                }
+                con.contentType = fromType(types[0]);
                 return con;
             }
             default:

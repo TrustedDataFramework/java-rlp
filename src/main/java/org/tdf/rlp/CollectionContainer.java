@@ -20,6 +20,10 @@ public class CollectionContainer<C extends Collection<T>, T> implements Containe
 
     Container contentType;
 
+    CollectionContainer(Class collectionType){
+        this.collectionType = collectionType;
+    }
+
     @Override
     public Class<T> asRaw() {
         throw new RuntimeException("not a raw type");

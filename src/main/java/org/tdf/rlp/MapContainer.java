@@ -21,6 +21,10 @@ public class MapContainer<M extends Map<K, V>, K, V> implements Container<V> {
     Container keyType;
     Container valueType;
 
+    MapContainer(Class mapType){
+        this.mapType = mapType;
+    }
+
     @Override
     public Class<V> asRaw() {
         throw new RuntimeException("not a raw type");
