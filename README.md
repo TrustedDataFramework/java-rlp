@@ -47,14 +47,14 @@ public class Node{
     @RLPIgnored
     public String ignored;
 
-    // the fields declared is analogy to
+    // the fields declared above is analogy to
     /**
      * @RLP(0)
      * public String name; 
      * @RLP(1)
      * public List<Node> children;
      * 
-     * 
+     * public String ignored;
     **/
      
     // a no-argument constructor
