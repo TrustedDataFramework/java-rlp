@@ -55,6 +55,8 @@ public class Node{
         RLPElement el = RLPElement.fromEncoded(encoded, lazy);
         ObjectMapper mapper = new ObjectMapper();
         byte[] json = mapper.writeValueAsBytes(root);
+        System.out.println("rlp size " + encoded.length);
+        System.out.println("json size " + json.length);
         long start = System.currentTimeMillis();
         for(int i = 0; i < 100000; i++){
             // read as rlp tree
