@@ -40,15 +40,6 @@ final class RLPUtils {
         return fields;
     }
 
-    static Comparator getContentOrdering(AnnotatedElement element) {
-        if (!element.isAnnotationPresent(RLPEncoding.class)) {
-            return null;
-        }
-        Class<? extends Comparator> clazz = element.getAnnotation(RLPEncoding.class).contentOrdering();
-        if (clazz == RLPEncoding.None.class) return null;
-        return newInstance(clazz);
-    }
-
     static Comparator getKeyOrdering(AnnotatedElement element) {
         if (!element.isAnnotationPresent(RLPEncoding.class)) {
             return null;

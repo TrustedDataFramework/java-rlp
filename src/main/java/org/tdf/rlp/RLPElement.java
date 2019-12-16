@@ -3,10 +3,7 @@ package org.tdf.rlp;
 import java.lang.reflect.Array;
 import java.lang.reflect.Field;
 import java.math.BigInteger;
-import java.util.Collection;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static org.tdf.rlp.RLPItem.NULL;
@@ -127,8 +124,8 @@ public interface RLPElement {
             if (fieldEncoder != null) {
                 return fieldEncoder.encode(o);
             }
-            Comparator comparator = RLPUtils.getContentOrdering(f);
-            if (Collection.class.isAssignableFrom(f.getType())) {
+            Comparator comparator = RLPUtils.getKeyOrdering(f);
+            if (Set.class.isAssignableFrom(f.getType())) {
                 return RLPCodec.encodeCollection((Collection) o, comparator);
             }
             comparator = RLPUtils.getKeyOrdering(f);

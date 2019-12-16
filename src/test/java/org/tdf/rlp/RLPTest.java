@@ -1375,7 +1375,7 @@ public class RLPTest {
 
     private static class SetWrapper1 {
         @RLP
-        @RLPEncoding(contentOrdering = StringComparator.class)
+        @RLPEncoding(keyOrdering = StringComparator.class)
         Set<String> set = new HashSet<>();
     }
 
@@ -1453,7 +1453,7 @@ public class RLPTest {
     private static class ByteArraySetWrapper {
         @RLP
         @RLPDecoding(as = ByteArraySet.class)
-        @RLPEncoding(contentOrdering = BytesComparator.class)
+        @RLPEncoding(keyOrdering = BytesComparator.class)
         private Set<byte[]> bytesSet;
     }
 

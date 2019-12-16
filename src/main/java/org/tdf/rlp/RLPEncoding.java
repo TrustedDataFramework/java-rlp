@@ -11,8 +11,6 @@ import java.util.Comparator;
 public @interface RLPEncoding {
     Class<? extends RLPEncoder> value() default RLPEncoder.None.class;
 
-    // content ordering of set
-    Class<? extends Comparator> contentOrdering() default None.class;
     Class<? extends Comparator> keyOrdering() default None.class;
 
     class None implements Comparator{
