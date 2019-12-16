@@ -1159,7 +1159,9 @@ public class RLPTest {
     }
 
     static class Foo {
+        @RLPIgnored
         public String a;
+        @RLPIgnored
         public long b;
     }
 
@@ -1607,5 +1609,38 @@ public class RLPTest {
         String s = Arrays.stream(res).mapToObj(x -> Hex.encodeHexString(new byte[]{(byte) x}))
                 .reduce("", (x, y) -> x + "-" + y);
         System.out.println(s);
+    }
+
+    private static class OrderTest{
+        public String field1 = "111";
+        public String field2 = "222";
+        public String field3 = "333";
+    }
+
+    @Test
+    public void testOrder(){
+        OrderTest o = new OrderTest();
+        RLPElement el = RLPElement.readRLPTree(o);
+        assert el.get(0).asString().equals("111");
+        assert el.get(1).asString().equals("222");
+        assert el.get(2).asString().equals("333");
+    }
+
+    private static class IgnoreTest{
+        @RLP(1)
+        public String field1 = "111";
+        @RLP(0)
+        public String field2 = "222";
+        @RLPIgnored
+        public String field3 = "333";
+    }
+
+    @Test
+    public void testIgnore(){
+        IgnoreTest o = new IgnoreTest();
+        RLPElement el = RLPElement.readRLPTree(o);
+        assert el.size() == 2;
+        assert el.get(0).asString().equals("222");
+        assert el.get(1).asString().equals("111");
     }
 }

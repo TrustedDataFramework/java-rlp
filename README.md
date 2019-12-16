@@ -38,16 +38,25 @@ import java.util.List;
 
 // RLP could encode & decode Tree-like object.
 public class Node{
-    // RLP annotation specify the order of field in encoded list
-    @RLP(0)
+    // RLP will encode declared fields ordered by handwriting by default
     public String name;
 
-    @RLP(1)
     public List<Node> children;
 
-    // field without @RLP will be ignored when encoding and decoding
+    // field with @RLPIgnored will be ignored when encoding & decoding
+    @RLPIgnored
     public String ignored;
 
+    // the fields declared is analogy to
+    /**
+     * @RLP(0)
+     * public String name; 
+     * @RLP(1)
+     * public List<Node> children;
+     * 
+     * 
+    **/
+     
     // a no-argument constructor
     public Node() {
     }

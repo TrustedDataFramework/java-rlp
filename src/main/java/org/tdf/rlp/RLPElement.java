@@ -110,7 +110,7 @@ public interface RLPElement {
         // peek fields reflection
         List<Field> fields = RLPUtils.getRLPFields(t.getClass());
         if (fields.size() == 0)
-            throw new RuntimeException(t.getClass() + " is not supported, no @RLP annotation found");
+            throw new RuntimeException("no encodable field of " + t.getClass().getName() + " found");
         return new RLPList(fields.stream().map(f -> {
             f.setAccessible(true);
             Object o;

@@ -30,14 +30,27 @@ final class RLPUtils {
     }
 
     static List<Field> getRLPFields(Class clazz) {
-        List<Field> fields = Arrays.stream(clazz.getDeclaredFields())
+        final Field[] declaredFields = clazz.getDeclaredFields();
+        List<Field> notIgnored = Arrays.stream(declaredFields)
+                .filter(x -> {
+                    if(x.isAnnotationPresent(RLPIgnored.class)) {
+                        if(x.isAnnotationPresent(RLP.class))
+                            throw new RuntimeException(x.getName() + " is both annotated with @RLP and @RLPIgnored");
+                        return false;
+                    }
+                    return true;
+                })
+                .collect(Collectors.toList());
+        List<Field> annotated = notIgnored.stream()
                 .filter(x -> x.isAnnotationPresent(RLP.class))
-                .sorted(Comparator.comparingInt(x -> x.getAnnotation(RLP.class).value())).collect(Collectors.toList());
-        for (int i = 0; i < fields.size(); i++) {
-            if (fields.get(i).getAnnotation(RLP.class).value() != i)
-                throw new RuntimeException(String.format("field %s of class %s should have RLP(%d)", fields.get(i), clazz, i));
+                .sorted(Comparator.comparingInt(x -> x.getAnnotation(RLP.class).value()))
+                .collect(Collectors.toList());
+        if(annotated.size() == 0) return notIgnored;
+        for (int i = 0; i < annotated.size(); i++) {
+            if (annotated.get(i).getAnnotation(RLP.class).value() != i)
+                throw new RuntimeException(String.format("field %s of class %s should have RLP(%d)", annotated.get(i), clazz, i));
         }
-        return fields;
+        return annotated;
     }
 
     static Comparator getKeyOrdering(Field field) {
