@@ -1,5 +1,8 @@
 package org.tdf.rlp;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -39,7 +42,7 @@ public class Node{
     }
 
 
-    public static void main(String[] args){
+    public static void main(String[] args) throws Exception{
         boolean lazy = true;
         Node root = new Node("1");
         root.addChildren(Arrays.asList(new Node("2"), new Node("3")));
@@ -49,14 +52,23 @@ public class Node{
 
         // encode to byte array
         byte[] encoded = RLPCodec.encode(root);
+        RLPElement el = RLPElement.fromEncoded(encoded, lazy);
+        ObjectMapper mapper = new ObjectMapper();
+        byte[] json = mapper.writeValueAsBytes(root);
         long start = System.currentTimeMillis();
-        for(int i = 0; i < 1000000; i++){
+        for(int i = 0; i < 100000; i++){
             // read as rlp tree
-            RLPElement el = RLPElement.fromEncoded(encoded, lazy);
-            el.as(Node.class);
-
+            RLPElement.fromEncoded(encoded, false);
         }
+
         long end = System.currentTimeMillis();
+        System.out.println(end - start + " ms");
+        start = System.currentTimeMillis();
+        for(int i = 0; i < 100000; i++){
+            // read as rlp tree
+            mapper.readValue(json, Node.class);
+        }
+        end = System.currentTimeMillis();
         System.out.println(end - start + " ms");
     }
 

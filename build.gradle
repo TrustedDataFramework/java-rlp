@@ -16,6 +16,7 @@ ext{
     lombokVersion = '1.18.10'
     commonsCodecVersion = '1.13'
     scastleVersion = '1.58.0.0'
+    jacksonVersion = '2.10.0'
 }
 
 dependencies {
@@ -25,6 +26,7 @@ dependencies {
     testCompile "commons-codec:commons-codec:${commonsCodecVersion}"
     testCompile "com.madgag.spongycastle:core:${scastleVersion}" // for rlp encoding
     testCompile "com.madgag.spongycastle:prov:${scastleVersion}" // for rlp encoding
+    testCompile "com.fasterxml.jackson.core:jackson-databind:${jacksonVersion}"
 }
 
 publishing {
