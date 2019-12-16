@@ -5,13 +5,11 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
-import java.lang.reflect.ParameterizedType;
 import java.math.BigInteger;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.security.SecureRandom;
 import java.util.*;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -25,7 +23,6 @@ import static org.tdf.rlp.RLPItem.ONE;
 @RunWith(JUnit4.class)
 public class RLPTest {
     public static class TestSerializer {
-        @RLP(0)
         public List<String> strings;
 
         public TestSerializer() {
@@ -37,9 +34,7 @@ public class RLPTest {
     }
 
     public static class Node {
-        @RLP(0)
         public String name;
-        @RLP(1)
         public List<Node> children;
 
         public Node() {
@@ -547,7 +542,6 @@ public class RLPTest {
     }
 
     public static class MapWrapper {
-        @RLP
         @RLPEncoding(MapEncoderDecoder.class)
         @RLPDecoding(MapEncoderDecoder.class)
         public Map<String, String> map;
@@ -1211,9 +1205,9 @@ public class RLPTest {
     }
 
     private static class Nested {
-        @RLP
         private List<List<List<String>>> nested;
 
+        @RLPIgnored
         private String hello;
 
         public Nested() {
@@ -1221,7 +1215,6 @@ public class RLPTest {
     }
 
     private static class NoNested {
-        @RLP
         private List<String> nested;
 
         public NoNested() {
@@ -1421,7 +1414,6 @@ public class RLPTest {
     }
 
     public static class MapWrapper2 {
-        @RLP
         @RLPDecoding(as = TreeMap.class)
         @RLPEncoding(keyOrdering = StringComparator.class)
         public Map<String, Map<String, String>> map = new HashMap<>();
@@ -1455,7 +1447,6 @@ public class RLPTest {
     }
 
     private static class ByteArraySetWrapper {
-        @RLP
         @RLPDecoding(as = ByteArraySet.class)
         @RLPEncoding(keyOrdering = BytesComparator.class)
         private Set<byte[]> bytesSet;
@@ -1498,46 +1489,38 @@ public class RLPTest {
     }
 
     private static class ErrorCase {
-        @RLP
         @RLPEncoding(keyOrdering = StringComparator.class)
         public List<String> some;
     }
 
     private static class ErrorCase1 {
-        @RLP
         @RLPDecoding(as = JUnit4.class)
         public long some;
     }
 
     private static class ErrorCase2 {
-        @RLP
         @RLPDecoding(as = Map.class)
         public long some;
     }
 
     private static class ErrorCase3 {
-        @RLP
         @RLPDecoding(as = HashMap.class)
         public Set<String> some;
     }
 
     private static class ErrorCase4 {
-        @RLP
         public ByteArrayMap<String> some;
     }
 
     private static class ErrorCase5 {
-        @RLP
         public ByteArraySet some;
     }
 
     private static class ErrorCase6<V> {
-        @RLP
         public Set<V> some;
     }
 
     private static class ErrorCase7 {
-        @RLP
         @RLPDecoding(as = AbstractMap.class)
         public Map<String, String> some;
     }

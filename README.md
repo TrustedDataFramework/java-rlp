@@ -1,6 +1,6 @@
 # java-rlp
 
-Fast ethereum rlp decode & encode in java.
+Fast ethereum rlp encode, decode and object mapping in java.
 
 ## Notes
 
@@ -26,7 +26,7 @@ Fast ethereum rlp decode & encode in java.
 
 ## Examples
 
-- RLP encoding & decoding of POJO.
+- RLP object mapping
 
 ```java
 package org.tdf.rlp;
@@ -104,14 +104,12 @@ public class Node{
 
 ```java
 public static class Tree{
-    @RLP
     @RLPDecoding(as = ConcurrentHashMap.class) 
     /* The decoded type will be java.util.concurrent.ConcurrentHashMap 
     instead of java.util.HashMap which is the default implementation of java.util.Map. */ 
     public Map<Map<String, Set<String>>, byte[]> tree;
 
     // although ByteArrayMap in ethereumJ is not supported by default, you can enable it by annotation
-    @RLP(1)
     @RLPDecoding(as = ByteArrayMap.class)
     public Map<byte[], String> stringMap;
 }
