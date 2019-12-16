@@ -10,10 +10,8 @@ import java.util.List;
 @RLPDecoding(Node.Decoder.class)
 public class Node {
     // RLP annotation specify the order of field in encoded list
-    @RLP(0)
     public String name;
 
-    @RLP(1)
     public List<Node> children;
 
     public Node() {
@@ -56,7 +54,7 @@ public class Node {
     }
 
     public static void main(String[] args) throws Exception {
-        boolean lazy = true;
+        boolean lazy = false;
         Node root = new Node("1");
         root.addChildren(Arrays.asList(new Node("2"), new Node("3")));
         Node node2 = root.children.get(0);
@@ -73,7 +71,7 @@ public class Node {
         long start = System.currentTimeMillis();
         for (int i = 0; i < 100000; i++) {
             // read as rlp tree
-            RLPElement.fromEncoded(encoded, true).as(Node.class);
+            RLPElement.fromEncoded(encoded, lazy).as(Node.class);
         }
 
         long end = System.currentTimeMillis();
