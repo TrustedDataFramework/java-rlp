@@ -100,6 +100,11 @@ public static class Tree{
     /* The decoded type will be java.util.concurrent.ConcurrentHashMap 
     instead of java.util.HashMap which is the default implementation of java.util.Map. */ 
     public Map<Map<String, Set<String>>, byte[]> tree;
+
+    // although ByteArrayMap in ethereumJ is not supported by default, you can enable it by annotaion
+    @RLP(1)
+    @RLPDecoding(as = ByteArrayMap.class)
+    public Map<byte[], String> stringMap;
 }
 ```    
 
