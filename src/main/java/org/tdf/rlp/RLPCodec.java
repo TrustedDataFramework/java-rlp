@@ -66,7 +66,7 @@ public final class RLPCodec {
                 Collection.class.isAssignableFrom(clazz)
                 || Map.class.isAssignableFrom(clazz)
         ) {
-            return (T) decodeContainer(element, Container.fromNoGeneric(clazz));
+            return (T) decodeContainer(element, Container.fromClass(clazz));
         }
         T o = RLPUtils.newInstance(clazz);
         List<Field> fields = RLPUtils.getRLPFields(clazz);

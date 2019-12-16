@@ -88,33 +88,4 @@ final class RLPUtils {
             throw new RuntimeException(clazz + " should has an no-argument constructor");
         }
     }
-
-    static Container fromType(Type type) {
-        if (type instanceof Class) return fromClass((Class) type);
-        if(type instanceof ParameterizedType) return fromParameterizedType((ParameterizedType) type);
-        return null;
-    }
-
-    static Container fromClass(Class clazz) {
-        if(Collection.class.isAssignableFrom(clazz)){
-            // clazz my extends from a generic super class
-            // clazz my implements a generic interface
-        }
-        if(Map.class.isAssignableFrom(clazz)){
-
-        }
-        return new Raw(clazz);
-    }
-
-    static Container fromParameterizedType(ParameterizedType type){
-        Class clazz = (Class) type.getRawType();
-        Container con = fromClass(clazz);
-        switch (con.getType()){
-            case RAW: return con;
-            case MAP: {
-
-            }
-        }
-        return null;
-    }
 }

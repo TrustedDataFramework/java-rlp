@@ -14,7 +14,7 @@ import java.util.stream.Stream;
 
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
-import static org.tdf.rlp.Container.fromGeneric;
+import static org.tdf.rlp.Container.fromType;
 import static org.tdf.rlp.RLPCodec.*;
 import static org.tdf.rlp.RLPItem.NULL;
 import static org.tdf.rlp.RLPItem.ONE;
@@ -1409,10 +1409,10 @@ public class RLPTest {
 
     @Test
     public void testContainer() throws Exception {
-        Container con = fromGeneric(Con.class.getField("sss").getGenericType());
-        Container con2 = fromGeneric(Con.class.getField("ccc").getGenericType());
-        Container con3 = fromGeneric(Con.class.getField("vvv").getGenericType());
-        Container con4 = fromGeneric(Con.class.getField("li").getGenericType());
+        Container con = fromType(Con.class.getField("sss").getGenericType());
+        Container con2 = fromType(Con.class.getField("ccc").getGenericType());
+        Container con3 = fromType(Con.class.getField("vvv").getGenericType());
+        Container con4 = fromType(Con.class.getField("li").getGenericType());
     }
 
     public static class MapWrapper2 {
@@ -1617,5 +1617,10 @@ public class RLPTest {
         assert ((RLPElement) m2.keySet().stream().findFirst().get()).asString().equals("1");
         Map<byte[], RLPElement> m3 = RLPCodec.decode(RLPCodec.encode(m), ByteArrayMap.class);
         assert m3.get("1".getBytes()).asString().equals("2");
+    }
+
+    @Test
+    public void test11(){
+        Container con = Container.fromType(ByteArrayMap.class.getGenericInterfaces()[0]);
     }
 }

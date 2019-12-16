@@ -8,7 +8,7 @@ import java.util.Map;
 
 public interface Container<V> {
     static Container<?> fromField(Field field) {
-        Container<?> container = fromGeneric(field.getGenericType());
+        Container<?> container = fromType(field.getGenericType());
         Class clazz = null;
         if (field.isAnnotationPresent(RLPDecoding.class)) {
             clazz = field.getAnnotation(RLPDecoding.class).as();
@@ -28,7 +28,7 @@ public interface Container<V> {
         return container;
     }
 
-    static Container fromNoGeneric(Class clazz) {
+    static Container fromClass(Class clazz) {
         if (Collection.class.isAssignableFrom(clazz)) {
             CollectionContainer con = new CollectionContainer();
             Class contentType = RLPUtils.getGenericTypeParameterRecursively(clazz, 0);
@@ -48,15 +48,15 @@ public interface Container<V> {
         return new Raw(clazz);
     }
 
-    static Container fromGeneric(Type type) {
+    static Container fromType(Type type) {
         if (type instanceof Class) {
-            return fromNoGeneric((Class) type);
+            return fromClass((Class) type);
         }
         if (!(type instanceof ParameterizedType)) throw new RuntimeException(type + " is not allowed in rlp decoding");
         ParameterizedType parameterizedType = (ParameterizedType) type;
         Type[] types = parameterizedType.getActualTypeArguments();
         Class clazz = (Class) parameterizedType.getRawType();
-        Container container = fromNoGeneric(clazz);
+        Container container = fromClass(clazz);
         switch (container.getType()) {
             case RAW:
                 return container;
@@ -64,17 +64,17 @@ public interface Container<V> {
                 MapContainer con = container.asMap();
                 int i = 0;
                 if (con.keyType == null) {
-                    con.keyType = i < types.length ? fromGeneric(types[i++]) : null;
+                    con.keyType = i < types.length ? fromType(types[i++]) : null;
                 }
                 if(con.valueType == null){
-                    con.valueType = i < types.length ? fromGeneric(types[i++]) : null;
+                    con.valueType = i < types.length ? fromType(types[i++]) : null;
                 }
                 return con;
             }
             case COLLECTION: {
                 CollectionContainer con = container.asCollection();
                 if (con.contentType == null) {
-                    con.contentType = 0 < types.length ? fromGeneric(types[0]) : null;
+                    con.contentType = 0 < types.length ? fromType(types[0]) : null;
                 }
                 return con;
             }
