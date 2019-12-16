@@ -34,7 +34,7 @@ public interface Container<V> {
         if (container.getType() == ContainerType.RAW)
             throw new RuntimeException("@RLPDecoding.as is used on collection or map typed field other than " + field.getName());
         if (!field.getType().isAssignableFrom(clazz))
-            throw new RuntimeException("cannot assign " + clazz + " as " + field.getType());
+            throw new RuntimeException("cannot assign " + clazz + " to " + field.getType());
         if (container.getType() == ContainerType.COLLECTION) {
             container.asCollection().collectionType = clazz;
         }

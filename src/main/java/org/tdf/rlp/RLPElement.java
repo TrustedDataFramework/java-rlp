@@ -119,12 +119,12 @@ public interface RLPElement {
             } catch (IllegalAccessException e) {
                 throw new RuntimeException(e);
             }
+            Comparator comparator = RLPUtils.getKeyOrdering(f);
             if(o == null) return NULL;
             RLPEncoder fieldEncoder = RLPUtils.getAnnotatedRLPEncoder(f);
             if (fieldEncoder != null) {
                 return fieldEncoder.encode(o);
             }
-            Comparator comparator = RLPUtils.getKeyOrdering(f);
             if (Set.class.isAssignableFrom(f.getType())) {
                 return RLPCodec.encodeCollection((Collection) o, comparator);
             }

@@ -5,17 +5,19 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
+import java.lang.reflect.ParameterizedType;
 import java.math.BigInteger;
+import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.security.SecureRandom;
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.tdf.rlp.Container.fromField;
-import static org.tdf.rlp.Container.fromType;
 import static org.tdf.rlp.RLPCodec.*;
 import static org.tdf.rlp.RLPItem.NULL;
 import static org.tdf.rlp.RLPItem.ONE;
@@ -1491,5 +1493,119 @@ public class RLPTest {
         for (int j = 0; j < el.size(); j++) {
             assert new BigInteger(1, el.get(j).asBytes()).compareTo(BigInteger.valueOf(j + 1)) == 0;
         }
+    }
+
+    private static class ErrorCase {
+        @RLP
+        @RLPEncoding(keyOrdering = StringComparator.class)
+        public List<String> some;
+    }
+
+    private static class ErrorCase1 {
+        @RLP
+        @RLPDecoding(as = JUnit4.class)
+        public long some;
+    }
+
+    private static class ErrorCase2 {
+        @RLP
+        @RLPDecoding(as = Map.class)
+        public long some;
+    }
+
+    private static class ErrorCase3 {
+        @RLP
+        @RLPDecoding(as = HashMap.class)
+        public Set<String> some;
+    }
+
+    private static class ErrorCase4 {
+        @RLP
+        public ByteArrayMap<String> some;
+    }
+
+    private static class ErrorCase5 {
+        @RLP
+        public ByteArraySet some;
+    }
+
+    private static class ErrorCase6<V> {
+        @RLP
+        public Set<V> some;
+    }
+
+    private static class ErrorCase7 {
+        @RLP
+        @RLPDecoding(as = AbstractMap.class)
+        public Map<String, String> some;
+    }
+
+    @Test(expected = RuntimeException.class)
+    public void testCompareListFailed() {
+        RLPCodec.encode(new ErrorCase());
+    }
+
+    @Test(expected = RuntimeException.class)
+    public void testFail() {
+        RLPCodec.decode(RLPCodec.encode(new ErrorCase1()), ErrorCase1.class);
+    }
+
+    @Test(expected = RuntimeException.class)
+    public void testFail2() {
+        RLPCodec.decode(RLPCodec.encode(new ErrorCase2()), ErrorCase2.class);
+    }
+
+    @Test(expected = RuntimeException.class)
+    public void testFail3() {
+        RLPCodec.decode(RLPCodec.encode(new ErrorCase3()), ErrorCase3.class);
+    }
+
+    @Test(expected = RuntimeException.class)
+    public void testFail4() {
+        RLPCodec.decode(RLPCodec.encode(new ErrorCase4()), ErrorCase4.class);
+    }
+
+    @Test(expected = RuntimeException.class)
+    public void testFail5() {
+        RLPCodec.decode(RLPCodec.encode(new ErrorCase5()), ErrorCase5.class);
+    }
+
+    @Test(expected = RuntimeException.class)
+    public void testFail6() {
+        RLPCodec.decode(RLPCodec.encode(new ErrorCase6<String>()), ErrorCase6.class);
+    }
+
+
+    @Test
+    public void test000() throws Exception {
+        System.out.println(Charset.defaultCharset());
+        for (int i = 0; i < 1000; i++) {
+            SecureRandom sr = new SecureRandom();
+            byte[] randBytes = new byte[32];
+            sr.nextBytes(randBytes);
+            byte[] randBytes2 = new String(randBytes).getBytes();
+            if (!Arrays.equals(randBytes, randBytes2)) {
+                printHex(randBytes);
+                printHex(randBytes2);
+            }
+        }
+    }
+
+    @Test
+    public void test0001() throws Exception {
+        for(int i = 0; i < 256; i++){
+            byte[] data = new byte[]{(byte) i};
+            System.out.println(Hex.encodeHexString(data) + " -> " + Hex.encodeHexString(new String(data).getBytes()));
+        }
+    }
+
+    private void printHex(byte[] bytes) {
+        int[] res = new int[bytes.length];
+        for (int i = 0; i < bytes.length; i++) {
+            res[i] = bytes[i] & 0xff;
+        }
+        String s = Arrays.stream(res).mapToObj(x -> Hex.encodeHexString(new byte[]{(byte) x}))
+                .reduce("", (x, y) -> x + "-" + y);
+        System.out.println(s);
     }
 }

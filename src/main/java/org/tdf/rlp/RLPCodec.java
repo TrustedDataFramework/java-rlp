@@ -84,11 +84,11 @@ public final class RLPCodec {
                 }
                 continue;
             }
+            Container container = fromField(f);
 
             if(el.isNull()) continue;
 
             try {
-                Container container = fromField(f);
                 f.set(o, decodeContainer(el, container));
             } catch (Exception e) {
                 throw new RuntimeException(e);
