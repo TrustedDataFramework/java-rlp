@@ -208,8 +208,6 @@ public class Main{
 
 ```
 
-## Do not use container as generic variable in your 
-
 ## Benchmark 
 
 - see RLPTest.performanceDecode for benchmark
