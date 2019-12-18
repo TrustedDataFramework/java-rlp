@@ -22,6 +22,7 @@ public class LazyElement implements RLPElement{
 
     @Override
     public boolean isRLPList() {
+        if(delegate != null) return delegate.isRLPList();
         return parser.peekIsList();
     }
 

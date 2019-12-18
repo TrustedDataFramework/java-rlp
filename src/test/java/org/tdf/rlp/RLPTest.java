@@ -510,6 +510,9 @@ public class RLPTest {
         byte[] encoded = RLPSerializer.SERIALIZER.serialize(root);
         RLPElement el = RLPElement.readRLPTree(root);
         Node root2 = RLPCodec.decode(encoded, Node.class);
+        el = RLPElement.fromEncoded(encoded);
+        assert el.get(0).isRLPItem();
+        assert el.get(1).isRLPList();
         assert root2.children.get(0).children.get(0).name.equals("4");
         assert root2.children.get(0).children.get(1).name.equals("5");
         assert root2.children.get(1).children.get(0).name.equals("6");
