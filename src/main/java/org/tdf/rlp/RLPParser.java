@@ -138,6 +138,7 @@ final class RLPParser {
         }
         if (prefix <= OFFSET_LONG_ITEM) {
             int length = prefix - OFFSET_SHORT_ITEM;
+            if(length == 0) return RLPItem.NULL;
             RLPItem item = new RLPItem(new LazyByteArray(raw, offset, offset + length));
             skip(length);
             return item;
