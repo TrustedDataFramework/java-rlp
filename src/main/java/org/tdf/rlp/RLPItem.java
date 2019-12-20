@@ -1,5 +1,9 @@
 package org.tdf.rlp;
 
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
@@ -11,6 +15,8 @@ import static org.tdf.rlp.RLPCodec.encodeBytes;
 /**
  * immutable rlp item
  */
+@AllArgsConstructor(access = AccessLevel.PACKAGE)
+@Builder(access = AccessLevel.PACKAGE)
 public final class RLPItem implements RLPElement {
     private static byte[] NULL_ENCODED = encodeBytes(null);
     public static final RLPItem ONE = new RLPItem(new LazyByteArray(new byte[]{1}));

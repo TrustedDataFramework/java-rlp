@@ -1,6 +1,7 @@
 package org.tdf.rlp;
 
 import org.apache.commons.codec.binary.Hex;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
@@ -1628,5 +1629,23 @@ public class RLPTest {
         assert el.size() == 2;
         assert el.get(0).asString().equals("222");
         assert el.get(1).asString().equals("111");
+    }
+
+    @Ignore
+    @Test
+    public void testbug() throws Exception{
+        LazyByteArray data = new LazyByteArray(HexBytes.decode("3d4d105a3fc6db71d35ed654b1b7aab73d8fa50d"), 0, 20);
+        LazyByteArray encoded = new LazyByteArray(HexBytes.decode("943d4d105a3fc6db71d35ed654b1b7aab73d8fa50d"), 0, 21);
+        RLPItem item1 = RLPItem.builder()
+                .data(data)
+                .build();
+        data = new LazyByteArray(HexBytes.decode("f6f0820101947d4d105a3fc6db71d35ed654b1b7aab73d8fa50d0887031dc9e665df8080861230a2db21008602ba7def3000c0c08080c0"), 0, 55);
+        encoded = new LazyByteArray(HexBytes.decode(
+                "b7f6f0820101947d4d105a3fc6db71d35ed654b1b7aab73d8fa50d0887031dc9e665df8080861230a2db21008602ba7def3000c0c08080c0"), 0, 56);
+        RLPItem item2 = RLPItem.builder()
+                .data(data)
+                .build();
+        RLPList li = RLPList.of(item1, item2);
+        assert RLPElement.fromEncoded(li.getEncoded(), false).size() == 3;
     }
 }
