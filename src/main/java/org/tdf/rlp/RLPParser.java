@@ -52,7 +52,7 @@ final class RLPParser {
         if (prefix < OFFSET_SHORT_ITEM) {
             return 1;
         }
-        if (prefix < OFFSET_LONG_ITEM) {
+        if (prefix <= OFFSET_LONG_ITEM) {
             return prefix - OFFSET_SHORT_ITEM + 1;
         }
         if (prefix < OFFSET_SHORT_LIST) {
@@ -136,11 +136,8 @@ final class RLPParser {
         if (prefix < OFFSET_SHORT_ITEM) {
             return RLPItem.fromBytes(new byte[]{(byte) prefix});
         }
-        if (prefix < OFFSET_LONG_ITEM) {
+        if (prefix <= OFFSET_LONG_ITEM) {
             int length = prefix - OFFSET_SHORT_ITEM;
-            if (length == 0) {
-                return RLPItem.NULL;
-            }
             RLPItem item = new RLPItem(new LazyByteArray(raw, offset, offset + length));
             skip(length);
             return item;

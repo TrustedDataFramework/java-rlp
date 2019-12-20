@@ -1631,7 +1631,6 @@ public class RLPTest {
         assert el.get(1).asString().equals("111");
     }
 
-    @Ignore
     @Test
     public void testbug() throws Exception{
         LazyByteArray data = new LazyByteArray(HexBytes.decode("3d4d105a3fc6db71d35ed654b1b7aab73d8fa50d"), 0, 20);
@@ -1646,6 +1645,6 @@ public class RLPTest {
                 .data(data)
                 .build();
         RLPList li = RLPList.of(item1, item2);
-        assert RLPElement.fromEncoded(li.getEncoded(), false).size() == 3;
+        assert RLPElement.fromEncoded(li.getEncoded(), false).size() == 2;
     }
 }
