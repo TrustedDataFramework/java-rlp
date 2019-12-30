@@ -6,9 +6,12 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
+import java.io.FileInputStream;
+import java.io.InputStream;
 import java.math.BigInteger;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Paths;
 import java.security.SecureRandom;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -1582,7 +1585,7 @@ public class RLPTest {
 
     @Test
     public void test0001() throws Exception {
-        for(int i = 0; i < 256; i++){
+        for (int i = 0; i < 256; i++) {
             byte[] data = new byte[]{(byte) i};
             System.out.println(Hex.encodeHexString(data) + " -> " + Hex.encodeHexString(new String(data).getBytes()));
         }
@@ -1598,14 +1601,14 @@ public class RLPTest {
         System.out.println(s);
     }
 
-    private static class OrderTest{
+    private static class OrderTest {
         public String field1 = "111";
         public String field2 = "222";
         public String field3 = "333";
     }
 
     @Test
-    public void testOrder(){
+    public void testOrder() {
         OrderTest o = new OrderTest();
         RLPElement el = RLPElement.readRLPTree(o);
         assert el.get(0).asString().equals("111");
@@ -1613,7 +1616,7 @@ public class RLPTest {
         assert el.get(2).asString().equals("333");
     }
 
-    private static class IgnoreTest{
+    private static class IgnoreTest {
         @RLP(1)
         public String field1 = "111";
         @RLP(0)
@@ -1623,7 +1626,7 @@ public class RLPTest {
     }
 
     @Test
-    public void testIgnore(){
+    public void testIgnore() {
         IgnoreTest o = new IgnoreTest();
         RLPElement el = RLPElement.readRLPTree(o);
         assert el.size() == 2;
@@ -1632,7 +1635,7 @@ public class RLPTest {
     }
 
     @Test
-    public void testbug() throws Exception{
+    public void testbug() throws Exception {
         LazyByteArray data = new LazyByteArray(HexBytes.decode("3d4d105a3fc6db71d35ed654b1b7aab73d8fa50d"), 0, 20);
         LazyByteArray encoded = new LazyByteArray(HexBytes.decode("943d4d105a3fc6db71d35ed654b1b7aab73d8fa50d"), 0, 21);
         RLPItem item1 = RLPItem.builder()
@@ -1646,5 +1649,20 @@ public class RLPTest {
                 .build();
         RLPList li = RLPList.of(item1, item2);
         assert RLPElement.fromEncoded(li.getEncoded(), false).size() == 2;
+    }
+
+    @Test
+    public void testBug2() throws Exception {
+        InputStream in = new FileInputStream(Paths.get("C:\\Users\\Sal\\Desktop\\", "2019-25-heights").toFile());
+        byte[] all = new byte[in.available()];
+        in.read(all);
+        TreeMap<Long, byte[]> map = (TreeMap<Long, byte[]>) RLPCodec.decodeContainer(all, MapContainer
+                .builder()
+                .mapType(TreeMap.class)
+                .keyType(new Raw(Long.class))
+                .valueType(new Raw(byte[].class))
+                .build()
+        );
+        System.out.println(map.size());
     }
 }

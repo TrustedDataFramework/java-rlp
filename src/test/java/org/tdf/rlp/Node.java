@@ -69,7 +69,7 @@ public class Node {
         System.out.println("rlp size " + encoded.length);
         System.out.println("json size " + json.length);
         long start = System.currentTimeMillis();
-        for (int i = 0; i < 100000; i++) {
+        for (int i = 0; i < 1000000; i++) {
             // read as rlp tree
             RLPElement.fromEncoded(encoded, lazy).as(Node.class);
         }
@@ -77,7 +77,7 @@ public class Node {
         long end = System.currentTimeMillis();
         System.out.println(end - start + " ms");
         start = System.currentTimeMillis();
-        for (int i = 0; i < 100000; i++) {
+        for (int i = 0; i < 1000000; i++) {
             // read as rlp tree
             mapper.readValue(json, Node.class);
         }

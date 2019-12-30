@@ -7,6 +7,8 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 final class RLPUtils {
+    static Map<Class, List<Field>> FIELDS = new HashMap<>();
+
     static RLPEncoder getAnnotatedRLPEncoder(AnnotatedElement element) {
         if (!element.isAnnotationPresent(RLPEncoding.class)) {
             return null;
@@ -30,6 +32,9 @@ final class RLPUtils {
     }
 
     static List<Field> getRLPFields(Class clazz) {
+        List<Field> fields = FIELDS.get(clazz);
+        if(fields != null) return fields;
+
         final Field[] declaredFields = clazz.getDeclaredFields();
         List<Field> notIgnored = Arrays.stream(declaredFields)
                 .filter(x -> {
@@ -45,11 +50,19 @@ final class RLPUtils {
                 .filter(x -> x.isAnnotationPresent(RLP.class))
                 .sorted(Comparator.comparingInt(x -> x.getAnnotation(RLP.class).value()))
                 .collect(Collectors.toList());
-        if(annotated.size() == 0) return notIgnored;
+        if(annotated.size() == 0) {
+            Map<Class, List<Field>> tmp = new HashMap<>(FIELDS);
+            tmp.put(clazz, notIgnored);
+            FIELDS = tmp;
+            return notIgnored;
+        }
         for (int i = 0; i < annotated.size(); i++) {
             if (annotated.get(i).getAnnotation(RLP.class).value() != i)
                 throw new RuntimeException(String.format("field %s of class %s should have RLP(%d)", annotated.get(i), clazz, i));
         }
+        Map<Class, List<Field>> tmp = new HashMap<>(FIELDS);
+        tmp.put(clazz, annotated);
+        FIELDS = tmp;
         return annotated;
     }
 
