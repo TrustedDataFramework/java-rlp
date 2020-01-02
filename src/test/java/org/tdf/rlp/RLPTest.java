@@ -1650,19 +1650,4 @@ public class RLPTest {
         RLPList li = RLPList.of(item1, item2);
         assert RLPElement.fromEncoded(li.getEncoded(), false).size() == 2;
     }
-
-    @Test
-    public void testBug2() throws Exception {
-        InputStream in = new FileInputStream(Paths.get("C:\\Users\\Sal\\Desktop\\", "2019-25-heights").toFile());
-        byte[] all = new byte[in.available()];
-        in.read(all);
-        TreeMap<Long, byte[]> map = (TreeMap<Long, byte[]>) RLPCodec.decodeContainer(all, MapContainer
-                .builder()
-                .mapType(TreeMap.class)
-                .keyType(new Raw(Long.class))
-                .valueType(new Raw(byte[].class))
-                .build()
-        );
-        System.out.println(map.size());
-    }
 }
