@@ -1652,6 +1652,7 @@ public class RLPTest {
     }
 
     @Test
+    @Ignore
     public void testBug2() throws Exception {
         InputStream in = new FileInputStream(Paths.get("C:\\Users\\Sal\\Desktop\\", "2019-25-heights").toFile());
         byte[] all = new byte[in.available()];
@@ -1664,5 +1665,24 @@ public class RLPTest {
                 .build()
         );
         System.out.println(map.size());
+    }
+
+    public static class Dummmy3 {
+        public Map<String, String> dum;
+    }
+
+    public static class Dummmy4 {
+        public List<String> dum;
+    }
+
+    @Test
+    public void testDecodeContainer() throws Exception{
+        Dummmy3 dummmy3 = RLPCodec.decode(RLPList.fromElements(Arrays.asList(NULL)).getEncoded(), Dummmy3.class);
+        assert dummmy3.dum != null;
+        assert dummmy3.dum.size() == 0;
+
+        Dummmy4 dummmy4 = RLPCodec.decode(RLPList.fromElements(Arrays.asList(NULL)).getEncoded(), Dummmy4.class);
+        assert dummmy4.dum != null;
+        assert dummmy4.dum.size() == 0;
     }
 }

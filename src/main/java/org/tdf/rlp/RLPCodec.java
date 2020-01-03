@@ -63,8 +63,7 @@ public final class RLPCodec {
         }
         // cannot determine generic type at runtime
         if (
-                Collection.class.isAssignableFrom(clazz)
-                || Map.class.isAssignableFrom(clazz)
+                RLPUtils.isContainer(clazz)
         ) {
             return (T) decodeContainer(element, Container.fromClass(clazz));
         }
@@ -74,6 +73,9 @@ public final class RLPCodec {
         for (int i = 0; i < fields.size(); i++) {
             RLPElement el = element.get(i);
             Field f = fields.get(i);
+
+            Container container = fromField(f);
+
             f.setAccessible(true);
             RLPDecoder fieldDecoder = RLPUtils.getAnnotatedRLPDecoder(f);
             if (fieldDecoder != null) {
@@ -84,9 +86,16 @@ public final class RLPCodec {
                 }
                 continue;
             }
-            Container container = fromField(f);
 
-            if(el.isNull()) continue;
+            if (!RLPUtils.isContainer(f.getType())) {
+                if (el.isNull()) continue;
+                try{
+                    f.set(o, decode(el, f.getType()));
+                    continue;
+                }catch (Exception e){
+                    throw new RuntimeException(e);
+                }
+            }
 
             try {
                 f.set(o, decodeContainer(el, container));
@@ -264,6 +273,7 @@ public final class RLPCodec {
             case COLLECTION: {
                 CollectionContainer collectionContainer = container.asCollection();
                 Collection res = (Collection) RLPUtils.newInstance(getDefaultImpl(collectionContainer.collectionType));
+                if(element.isNull()) return res;
                 for (int i = 0; i < element.size(); i++) {
                     res.add(decodeContainer(element.get(i), collectionContainer.contentType));
                 }
@@ -272,11 +282,12 @@ public final class RLPCodec {
             case MAP: {
                 MapContainer mapContainer = container.asMap();
                 Map res = (Map) RLPUtils.newInstance(getDefaultImpl(mapContainer.mapType));
+                if(element.isNull()) return res;
                 for (int i = 0; i < element.size(); i += 2) {
                     res.put(
                             decodeContainer(element.get(i), mapContainer.keyType),
                             decodeContainer(element.get(i + 1), mapContainer.valueType)
-                        );
+                    );
                 }
                 return res;
             }
