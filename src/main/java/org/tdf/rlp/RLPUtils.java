@@ -8,6 +8,7 @@ import java.util.stream.Collectors;
 
 final class RLPUtils {
     static Map<Class, List<Field>> FIELDS = new HashMap<>();
+    static Map<Class, List<Container>> CONTAINERS = new HashMap<>();
 
     static RLPEncoder getAnnotatedRLPEncoder(AnnotatedElement element) {
         if (!element.isAnnotationPresent(RLPEncoding.class)) {
@@ -64,6 +65,17 @@ final class RLPUtils {
         tmp.put(clazz, annotated);
         FIELDS = tmp;
         return annotated;
+    }
+
+    static List<Container> getRLPContainers(Class clazz){
+        List<Container> containers = CONTAINERS.get(clazz);
+        if(containers != null) return containers;
+        Map<Class, List<Container>> copied = new HashMap<>(CONTAINERS);
+        List<Container> ret = getRLPFields(clazz).stream()
+                .map(Container::fromField)
+                .collect(Collectors.toList());
+        copied.put(clazz, ret);
+        return ret;
     }
 
     static Comparator getKeyOrdering(Field field) {

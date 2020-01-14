@@ -70,11 +70,12 @@ public final class RLPCodec {
         T o = RLPUtils.newInstance(clazz);
         List<Field> fields = RLPUtils.getRLPFields(clazz);
         if (fields.size() == 0) throw new RuntimeException("no encodable field of " + clazz.getName() + " found");
+        List<Container> containers = RLPUtils.getRLPContainers(clazz);
         for (int i = 0; i < fields.size(); i++) {
             RLPElement el = element.get(i);
             Field f = fields.get(i);
 
-            Container container = fromField(f);
+            Container container = containers.get(i);
 
             f.setAccessible(true);
             RLPDecoder fieldDecoder = RLPUtils.getAnnotatedRLPDecoder(f);
