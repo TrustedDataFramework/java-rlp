@@ -7,17 +7,17 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
-public class Node {
+class Node {
     // RLP annotation specify the order of field in encoded list
-    public String name;
+    public long number;
 
     public List<Node> children;
 
-    public Node() {
+    private Node() {
     }
 
-    public Node(String name) {
-        this.name = name;
+    public Node(long number) {
+        this.number = number;
     }
 
     public void addChildren(Collection<Node> nodes) {
@@ -40,11 +40,11 @@ public class Node {
 
     public static void main(String[] args) throws Exception {
         boolean lazy = false;
-        Node root = new Node("1");
-        root.addChildren(Arrays.asList(new Node("2"), new Node("3")));
+        Node root = new Node(1);
+        root.addChildren(Arrays.asList(new Node(2), new Node(3)));
         Node node2 = root.children.get(0);
-        node2.addChildren(Arrays.asList(new Node("4"), new Node("5")));
-        root.children.get(1).addChildren(Arrays.asList(new Node("6"), new Node("7")));
+        node2.addChildren(Arrays.asList(new Node(4), new Node(5)));
+        root.children.get(1).addChildren(Arrays.asList(new Node(6), new Node(7)));
 
         // encode to byte array
         byte[] encoded = RLPCodec.encode(root);
