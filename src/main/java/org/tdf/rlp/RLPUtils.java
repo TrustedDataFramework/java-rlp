@@ -75,6 +75,7 @@ final class RLPUtils {
                 .map(Container::fromField)
                 .collect(Collectors.toList());
         copied.put(clazz, ret);
+        CONTAINERS = copied;
         return ret;
     }
 

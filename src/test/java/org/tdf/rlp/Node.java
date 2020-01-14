@@ -7,7 +7,6 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
-@RLPDecoding(Node.Decoder.class)
 public class Node {
     // RLP annotation specify the order of field in encoded list
     public String name;
@@ -36,20 +35,6 @@ public class Node {
         private List<List<List<String>>> nested;
 
         public Nested() {
-        }
-    }
-
-    public static class Decoder implements RLPDecoder<Node> {
-        @Override
-        public Node decode(RLPElement element) {
-            Node n = new Node();
-            n.name = element.get(0).asString();
-            if (element.get(1).isNull()) return n;
-            n.children = new ArrayList<>(element.get(1).size());
-            for (int i = 0; i < element.get(1).size(); i++) {
-                n.children.add(decode(element.get(1).get(i)));
-            }
-            return n;
         }
     }
 
