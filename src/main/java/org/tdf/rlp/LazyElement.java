@@ -16,7 +16,7 @@ public class LazyElement implements RLPElement{
 
     private void parse(){
         if (delegate != null) return;
-        delegate = parser.readElement();
+        delegate = parser.readLazy();
         // release gc
     }
 

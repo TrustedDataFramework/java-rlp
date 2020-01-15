@@ -74,10 +74,8 @@ public final class RLPCodec {
         for (int i = 0; i < fields.size(); i++) {
             RLPElement el = element.get(i);
             Field f = fields.get(i);
-
             Container container = containers.get(i);
 
-            f.setAccessible(true);
             RLPDecoder fieldDecoder = RLPUtils.getAnnotatedRLPDecoder(f);
             if (fieldDecoder != null) {
                 try {
@@ -86,16 +84,6 @@ public final class RLPCodec {
                     throw new RuntimeException(e);
                 }
                 continue;
-            }
-
-            if (!RLPUtils.isContainer(f.getType())) {
-                if (el.isNull()) continue;
-                try{
-                    f.set(o, decode(el, f.getType()));
-                    continue;
-                }catch (Exception e){
-                    throw new RuntimeException(e);
-                }
             }
 
             try {
