@@ -2,12 +2,28 @@ package org.tdf.rlp;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
 
+@RLPDecoding(Node.Decoder.class)
 class Node {
+    public static class Decoder implements RLPDecoder<Node> {
+        @Override
+        public Node decode(RLPElement element) {
+            Node n = new Node();
+            n.number = element.get(0).asLong();
+            if (element.get(1).isNull()){
+                return n;
+            }
+            RLPList list = element.get(1).asRLPList();
+            n.children = list.isEmpty() ? Collections.emptyList() : new ArrayList<>(list.size());
+
+            for (RLPElement rlpElement : list) {
+                n.children.add(decode(rlpElement));
+            }
+            return n;
+        }
+    }
+
     // RLP annotation specify the order of field in encoded list
     public long number;
 
