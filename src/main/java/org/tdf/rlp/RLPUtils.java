@@ -12,6 +12,7 @@ final class RLPUtils {
     static Map<Class, List<Field>> FIELDS = new HashMap<>();
     static Map<Class, List<Container>> CONTAINERS = new HashMap<>();
     static Map<Class, Constructor<?>> CONSTRUCTORS = new HashMap<>();
+    static Map<Class, Object> STATIC_OBJECTS = new HashMap<>();
 
     static RLPEncoder getAnnotatedRLPEncoder(AnnotatedElement element) {
         if (!element.isAnnotationPresent(RLPEncoding.class)) {
@@ -21,7 +22,7 @@ final class RLPUtils {
         if (encoder == RLPEncoder.None.class) {
             return null;
         }
-        return newInstance(encoder);
+        return getInstance(encoder);
     }
 
     static RLPDecoder getAnnotatedRLPDecoder(AnnotatedElement element) {
@@ -32,7 +33,7 @@ final class RLPUtils {
         if (decoder == RLPDecoder.None.class) {
             return null;
         }
-        return newInstance(decoder);
+        return getInstance(decoder);
     }
 
     static List<Field> getRLPFields(Class clazz) {
@@ -97,11 +98,21 @@ final class RLPUtils {
             throw new RuntimeException("@RLPEncoding.keyOrdering() is used on Map or Set other than "
                     + field.getName() + " "
                     + field.getType().getName());
-        return newInstance(clazz);
+        return getInstance(clazz);
     }
 
     static boolean isContainer(Class clazz) {
         return Map.class.isAssignableFrom(clazz) || Collection.class.isAssignableFrom(clazz);
+    }
+
+    static <T> T getInstance(Class<T> clazz){
+        T t = (T) STATIC_OBJECTS.get(clazz);
+        if(t != null) return t;
+        t = newInstance(clazz);
+        Map<Class, Object> copied = new HashMap<>(STATIC_OBJECTS);
+        copied.put(clazz, t);
+        STATIC_OBJECTS = copied;
+        return t;
     }
 
     static <T> T newInstance(Class<T> clazz) {
