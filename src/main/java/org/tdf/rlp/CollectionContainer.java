@@ -13,15 +13,14 @@ import java.util.Map;
 @Builder
 public class CollectionContainer<C extends Collection<T>, T> implements Container<T> {
     Class collectionType;
+    Container contentType;
+
+    CollectionContainer(Class collectionType) {
+        this.collectionType = collectionType;
+    }
 
     public ContainerType getType() {
         return ContainerType.COLLECTION;
-    }
-
-    Container contentType;
-
-    CollectionContainer(Class collectionType){
-        this.collectionType = collectionType;
     }
 
     @Override

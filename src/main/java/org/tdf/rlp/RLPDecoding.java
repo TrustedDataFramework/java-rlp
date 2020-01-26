@@ -9,5 +9,6 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 public @interface RLPDecoding {
     Class<? extends RLPDecoder> value() default RLPDecoder.None.class;
+
     Class<?> as() default Void.class;
 }

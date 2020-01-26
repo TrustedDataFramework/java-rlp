@@ -8,7 +8,7 @@ import java.util.Map;
 
 @NoArgsConstructor
 @AllArgsConstructor
-class RLPContextImpl implements RLPContext{
+class RLPContextImpl implements RLPContext {
     private Map<Class, RLPEncoder> encoders = new HashMap<>();
     private Map<Class, RLPDecoder> decoders = new HashMap<>();
 

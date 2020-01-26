@@ -19,50 +19,6 @@ import static org.tdf.rlp.RLPItem.ONE;
  * RLP cannot determine whether a box type is null or zero, e.g. Byte, Short, Integer, Long, BigInteger
  */
 public interface RLPElement {
-    boolean isRLPList();
-
-    boolean isRLPItem();
-
-    RLPList asRLPList();
-
-    RLPItem asRLPItem();
-
-    boolean isNull();
-
-    byte[] getEncoded();
-
-    byte[] asBytes();
-
-    byte asByte();
-
-    short asShort();
-
-    int asInt();
-
-    long asLong();
-
-    int size();
-
-    RLPElement get(int index);
-
-    boolean add(RLPElement element);
-
-    RLPElement set(int index, RLPElement element);
-
-    BigInteger asBigInteger();
-
-    String asString();
-
-    boolean asBoolean();
-
-    default <T> T as(Class<T> clazz) {
-        return RLPCodec.decode(this, clazz);
-    }
-
-    default <T> T as(Class<T> clazz, RLPContext context) {
-        return RLPCodec.decode(this, clazz, context);
-    }
-
     static RLPElement fromEncoded(byte[] data) {
         return fromEncoded(data, true);
     }
@@ -71,7 +27,7 @@ public interface RLPElement {
         return RLPParser.fromEncoded(data, lazy);
     }
 
-    static RLPElement readRLPTree(Object t){
+    static RLPElement readRLPTree(Object t) {
         return readRLPTree(t, RLPContext.EMPTY);
     }
 
@@ -148,6 +104,50 @@ public interface RLPElement {
             }
             return readRLPTree(o, context);
         }).collect(Collectors.toList()));
+    }
+
+    boolean isRLPList();
+
+    boolean isRLPItem();
+
+    RLPList asRLPList();
+
+    RLPItem asRLPItem();
+
+    boolean isNull();
+
+    byte[] getEncoded();
+
+    byte[] asBytes();
+
+    byte asByte();
+
+    short asShort();
+
+    int asInt();
+
+    long asLong();
+
+    int size();
+
+    RLPElement get(int index);
+
+    boolean add(RLPElement element);
+
+    RLPElement set(int index, RLPElement element);
+
+    BigInteger asBigInteger();
+
+    String asString();
+
+    boolean asBoolean();
+
+    default <T> T as(Class<T> clazz) {
+        return RLPCodec.decode(this, clazz);
+    }
+
+    default <T> T as(Class<T> clazz, RLPContext context) {
+        return RLPCodec.decode(this, clazz, context);
     }
 
 

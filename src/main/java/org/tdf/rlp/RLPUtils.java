@@ -105,9 +105,9 @@ final class RLPUtils {
         return Map.class.isAssignableFrom(clazz) || Collection.class.isAssignableFrom(clazz);
     }
 
-    static <T> T getInstance(Class<T> clazz){
+    static <T> T getInstance(Class<T> clazz) {
         T t = (T) STATIC_OBJECTS.get(clazz);
-        if(t != null) return t;
+        if (t != null) return t;
         t = newInstance(clazz);
         Map<Class, Object> copied = new HashMap<>(STATIC_OBJECTS);
         copied.put(clazz, t);

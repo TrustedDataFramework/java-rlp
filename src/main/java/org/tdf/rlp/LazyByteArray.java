@@ -4,13 +4,12 @@ import java.util.Arrays;
 
 // reduce byte array copy by lazy loading
 final class LazyByteArray {
+    static LazyByteArray EMPTY = new LazyByteArray(new byte[0]);
     private byte[] data;
     private int offset;
     private int limit;
 
-    static LazyByteArray EMPTY = new LazyByteArray(new byte[0]);
-
-    LazyByteArray(byte[] data){
+    LazyByteArray(byte[] data) {
         this.data = data;
         this.limit = data.length;
     }
@@ -21,15 +20,15 @@ final class LazyByteArray {
         this.limit = limit;
     }
 
-    byte[] get(){
-        if(offset == 0 && limit == data.length) return data;
+    byte[] get() {
+        if (offset == 0 && limit == data.length) return data;
         data = Arrays.copyOfRange(data, offset, limit);
         offset = 0;
         limit = data.length;
         return data;
     }
 
-    int size(){
+    int size() {
         return limit - offset;
     }
 }

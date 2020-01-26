@@ -13,16 +13,14 @@ import java.util.Map;
 @Builder
 public class MapContainer<M extends Map<K, V>, K, V> implements Container<V> {
     Class mapType;
+    Container keyType;
+    Container valueType;
+    MapContainer(Class mapType) {
+        this.mapType = mapType;
+    }
 
     public ContainerType getType() {
         return ContainerType.MAP;
-    }
-
-    Container keyType;
-    Container valueType;
-
-    MapContainer(Class mapType){
-        this.mapType = mapType;
     }
 
     @Override

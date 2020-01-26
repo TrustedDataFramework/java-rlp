@@ -9,6 +9,13 @@ import java.util.Map;
 public class Raw<V> implements Container<V> {
     Class<V> rawType;
 
+    Raw() {
+    }
+
+    public Raw(Class<V> rawType) {
+        this.rawType = rawType;
+    }
+
     public ContainerType getType() {
         return ContainerType.RAW;
     }
@@ -26,12 +33,5 @@ public class Raw<V> implements Container<V> {
     @Override
     public MapContainer<? extends Map<?, V>, ?, V> asMap() {
         throw new RuntimeException("not a map container");
-    }
-
-    Raw() {
-    }
-
-    public Raw(Class<V> rawType) {
-        this.rawType = rawType;
     }
 }

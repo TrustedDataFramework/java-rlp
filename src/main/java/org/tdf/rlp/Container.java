@@ -10,9 +10,9 @@ import java.util.concurrent.ConcurrentMap;
 public interface Container<V> {
     Set<Class<? extends Map>> SUPPORTED_MAPS = new HashSet<>(
             Arrays.asList(
-            Map.class, HashMap.class,
-            ConcurrentMap.class, ConcurrentHashMap.class,
-            TreeMap.class)
+                    Map.class, HashMap.class,
+                    ConcurrentMap.class, ConcurrentHashMap.class,
+                    TreeMap.class)
     );
 
     Set<Class<? extends Collection>> SUPPORTED_COLLECTIONS = new HashSet<>(Arrays.asList(
@@ -29,7 +29,7 @@ public interface Container<V> {
             clazz = field.getAnnotation(RLPDecoding.class).as();
         }
         if (clazz == null || clazz == Void.class) return container;
-        if(!Collection.class.isAssignableFrom(clazz) && !Map.class.isAssignableFrom(clazz))
+        if (!Collection.class.isAssignableFrom(clazz) && !Map.class.isAssignableFrom(clazz))
             throw new RuntimeException("@RLPDecoding.as must be a collection of map type while " + clazz.getName() + " found");
         if (container.getType() == ContainerType.RAW)
             throw new RuntimeException("@RLPDecoding.as is used on collection or map typed field other than " + field.getName());
@@ -47,14 +47,14 @@ public interface Container<V> {
     // from class without generic variable
     static Container fromClass(Class clazz) {
         if (Collection.class.isAssignableFrom(clazz)) {
-            if(!SUPPORTED_COLLECTIONS.contains(clazz))
+            if (!SUPPORTED_COLLECTIONS.contains(clazz))
                 throw new RuntimeException(clazz + " is not supported, please use one of type "
                         + SUPPORTED_COLLECTIONS.stream().map(x -> x.getName()).reduce("", String::concat)
                 );
             return new CollectionContainer(clazz);
         }
         if (Map.class.isAssignableFrom(clazz)) {
-            if(!SUPPORTED_MAPS.contains(clazz))
+            if (!SUPPORTED_MAPS.contains(clazz))
                 throw new RuntimeException(clazz + " is not supported, please use one of type "
                         + SUPPORTED_MAPS.stream().map(x -> x.getName()).reduce("", String::concat));
             return new MapContainer(clazz);

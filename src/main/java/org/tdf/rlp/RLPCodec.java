@@ -26,7 +26,7 @@ public final class RLPCodec {
         return decode(element, clazz, context);
     }
 
-    public static <T> T decode(RLPElement element, Class<T> clazz){
+    public static <T> T decode(RLPElement element, Class<T> clazz) {
         return decode(element, clazz, RLPContext.EMPTY);
     }
 
@@ -37,7 +37,7 @@ public final class RLPCodec {
         RLPDecoder<T> decoder = RLPUtils.getAnnotatedRLPDecoder(clazz);
         if (decoder != null) return decoder.decode(element);
         decoder = context.getDecoder(clazz);
-        if(decoder != null) return decoder.decode(element);
+        if (decoder != null) return decoder.decode(element);
         if (clazz == boolean.class || clazz == Boolean.class) return (T) Boolean.valueOf(element.asBoolean());
         if (clazz == Byte.class || clazz == byte.class) {
             return (T) Byte.valueOf(element.asByte());
@@ -276,7 +276,7 @@ public final class RLPCodec {
             case COLLECTION: {
                 CollectionContainer collectionContainer = container.asCollection();
                 Collection res = (Collection) RLPUtils.newInstance(getDefaultImpl(collectionContainer.collectionType));
-                if(element.isNull()) return res;
+                if (element.isNull()) return res;
                 for (int i = 0; i < element.size(); i++) {
                     res.add(decodeContainer(element.get(i), collectionContainer.contentType));
                 }
@@ -285,7 +285,7 @@ public final class RLPCodec {
             case MAP: {
                 MapContainer mapContainer = container.asMap();
                 Map res = (Map) RLPUtils.newInstance(getDefaultImpl(mapContainer.mapType));
-                if(element.isNull()) return res;
+                if (element.isNull()) return res;
                 for (int i = 0; i < element.size(); i += 2) {
                     res.put(
                             decodeContainer(element.get(i), mapContainer.keyType),

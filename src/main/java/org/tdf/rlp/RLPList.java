@@ -7,6 +7,15 @@ import java.util.stream.Collectors;
 
 public final class RLPList implements RLPElement, List<RLPElement> {
     static byte[] EMPTY_ENCODED_LIST = RLPCodec.encodeElements(new ArrayList<>());
+    private List<RLPElement> elements = new ArrayList<>();
+    private LazyByteArray encoded;
+
+    private RLPList() {
+    }
+
+    RLPList(List<RLPElement> elements) {
+        this.elements = elements;
+    }
 
     public static RLPList of(RLPElement... elements) {
         return new RLPList(Arrays.asList(elements));
@@ -24,23 +33,8 @@ public final class RLPList implements RLPElement, List<RLPElement> {
         return new RLPList(new ArrayList<>(cap));
     }
 
-    private List<RLPElement> elements = new ArrayList<>();
-
-    private LazyByteArray encoded;
-
-    void setEncoded(LazyByteArray encoded) {
-        this.encoded = encoded;
-    }
-
     private void setDirty() {
         encoded = null;
-    }
-
-    private RLPList() {
-    }
-
-    RLPList(List<RLPElement> elements) {
-        this.elements = elements;
     }
 
     @Override
@@ -69,6 +63,10 @@ public final class RLPList implements RLPElement, List<RLPElement> {
                 )
         );
         return encoded.get();
+    }
+
+    void setEncoded(LazyByteArray encoded) {
+        this.encoded = encoded;
     }
 
     @Override

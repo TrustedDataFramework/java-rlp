@@ -9,25 +9,9 @@ import java.util.Arrays;
 import static org.tdf.rlp.RLPConstants.*;
 
 final class RLPParser {
-    private static int byteArrayToInt(byte[] b) {
-        if (b == null || b.length == 0)
-            return 0;
-        return new BigInteger(1, b).intValue();
-    }
-
     private byte[] raw;
-
     private int offset;
-
     private int limit;
-
-    static RLPElement fromEncoded(@NonNull byte[] data, boolean lazy) {
-        RLPParser parser = new RLPParser(data);
-        if (parser.estimateSize() != data.length) {
-            throw new RuntimeException("invalid encoding");
-        }
-        return lazy ? parser.readLazy() : parser.readElement();
-    }
 
     private RLPParser(byte[] data) {
         this.raw = data;
@@ -38,6 +22,20 @@ final class RLPParser {
         this.raw = data;
         this.offset = offset;
         this.limit = limit;
+    }
+
+    private static int byteArrayToInt(byte[] b) {
+        if (b == null || b.length == 0)
+            return 0;
+        return new BigInteger(1, b).intValue();
+    }
+
+    static RLPElement fromEncoded(@NonNull byte[] data, boolean lazy) {
+        RLPParser parser = new RLPParser(data);
+        if (parser.estimateSize() != data.length) {
+            throw new RuntimeException("invalid encoding");
+        }
+        return lazy ? parser.readLazy() : parser.readElement();
     }
 
     private RLPParser readAsParser(int length) {
@@ -138,7 +136,7 @@ final class RLPParser {
         }
         if (prefix <= OFFSET_LONG_ITEM) {
             int length = prefix - OFFSET_SHORT_ITEM;
-            if(length == 0) return RLPItem.NULL;
+            if (length == 0) return RLPItem.NULL;
             RLPItem item = new RLPItem(new LazyByteArray(raw, offset, offset + length));
             skip(length);
             return item;
@@ -157,7 +155,7 @@ final class RLPParser {
         return offset < limit;
     }
 
-    LazyByteArray getLazyByteArray(){
+    LazyByteArray getLazyByteArray() {
         return new LazyByteArray(raw, offset, limit);
     }
 }

@@ -2,7 +2,7 @@ package org.tdf.rlp;
 
 import java.math.BigInteger;
 
-public class LazyElement implements RLPElement{
+public class LazyElement implements RLPElement {
     private RLPElement delegate;
 
     private RLPParser parser;
@@ -14,7 +14,7 @@ public class LazyElement implements RLPElement{
         this.encoded = parser.getLazyByteArray();
     }
 
-    private void parse(){
+    private void parse() {
         if (delegate != null) return;
         delegate = parser.readLazy();
         // release gc
@@ -22,7 +22,7 @@ public class LazyElement implements RLPElement{
 
     @Override
     public boolean isRLPList() {
-        if(delegate != null) return delegate.isRLPList();
+        if (delegate != null) return delegate.isRLPList();
         return parser.peekIsList();
     }
 
@@ -51,7 +51,7 @@ public class LazyElement implements RLPElement{
 
     @Override
     public byte[] getEncoded() {
-        if(delegate == null || isRLPItem()) return encoded.get();
+        if (delegate == null || isRLPItem()) return encoded.get();
         parse();
         return delegate.getEncoded();
     }

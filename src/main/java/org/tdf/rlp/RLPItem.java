@@ -18,21 +18,15 @@ import static org.tdf.rlp.RLPCodec.encodeBytes;
 @AllArgsConstructor(access = AccessLevel.PACKAGE)
 @Builder(access = AccessLevel.PACKAGE)
 public final class RLPItem implements RLPElement {
-    private static byte[] NULL_ENCODED = encodeBytes(null);
     public static final RLPItem ONE = new RLPItem(new LazyByteArray(new byte[]{1}));
-
+    public static final RLPItem NULL = new RLPItem(EMPTY);
+    private static byte[] NULL_ENCODED = encodeBytes(null);
     private LazyByteArray data;
-
     private Long longNumber;
-
     private LazyByteArray encoded;
 
-    void setEncoded(LazyByteArray encoded) {
-        this.encoded = encoded;
-    }
-
-    public byte[] asBytes() {
-        return data.get();
+    RLPItem(LazyByteArray data) {
+        this.data = data;
     }
 
     public static RLPItem fromByte(byte b) {
@@ -63,13 +57,13 @@ public final class RLPItem implements RLPElement {
     }
 
     public static RLPItem fromString(String s) {
-        if(s == null) return NULL;
+        if (s == null) return NULL;
         return fromBytes(s.getBytes(StandardCharsets.UTF_8));
     }
 
     public static RLPItem fromBytes(byte[] data) {
         if (data == null || data.length == 0) return NULL;
-        if(data.length == 1 && (Byte.toUnsignedInt(data[0]) == 1)) return ONE;
+        if (data.length == 1 && (Byte.toUnsignedInt(data[0]) == 1)) return ONE;
         return new RLPItem(new LazyByteArray(data));
     }
 
@@ -95,10 +89,29 @@ public final class RLPItem implements RLPElement {
         return bytes;
     }
 
-    public static final RLPItem NULL = new RLPItem(EMPTY);
+    /**
+     * Returns the values from each provided array combined into a single array. For example, {@code
+     * concat(new byte[] {a, b}, new byte[] {}, new byte[] {c}} returns the array {@code {a, b, c}}.
+     *
+     * @param arrays zero or more {@code byte} arrays
+     * @return a single array containing all the values from the source arrays, in order
+     */
+    private static byte[] concat(byte[]... arrays) {
+        int length = 0;
+        for (byte[] array : arrays) {
+            length += array.length;
+        }
+        byte[] result = new byte[length];
+        int pos = 0;
+        for (byte[] array : arrays) {
+            System.arraycopy(array, 0, result, pos, array.length);
+            pos += array.length;
+        }
+        return result;
+    }
 
-    RLPItem(LazyByteArray data) {
-        this.data = data;
+    public byte[] asBytes() {
+        return data.get();
     }
 
     @Override
@@ -158,7 +171,7 @@ public final class RLPItem implements RLPElement {
     }
 
     public String asString() {
-        if(isNull()) return "";
+        if (isNull()) return "";
         return new String(asBytes(), StandardCharsets.UTF_8);
     }
 
@@ -173,26 +186,8 @@ public final class RLPItem implements RLPElement {
         return encoded.get();
     }
 
-
-    /**
-     * Returns the values from each provided array combined into a single array. For example, {@code
-     * concat(new byte[] {a, b}, new byte[] {}, new byte[] {c}} returns the array {@code {a, b, c}}.
-     *
-     * @param arrays zero or more {@code byte} arrays
-     * @return a single array containing all the values from the source arrays, in order
-     */
-    private static byte[] concat(byte[]... arrays) {
-        int length = 0;
-        for (byte[] array : arrays) {
-            length += array.length;
-        }
-        byte[] result = new byte[length];
-        int pos = 0;
-        for (byte[] array : arrays) {
-            System.arraycopy(array, 0, result, pos, array.length);
-            pos += array.length;
-        }
-        return result;
+    void setEncoded(LazyByteArray encoded) {
+        this.encoded = encoded;
     }
 
     @Override
