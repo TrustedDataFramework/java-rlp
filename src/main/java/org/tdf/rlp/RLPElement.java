@@ -67,16 +67,25 @@ public interface RLPElement {
         return RLPParser.fromEncoded(data, lazy);
     }
 
+    static RLPElement readRLPTree(Object t){
+        return readRLPTree(t, RLPContext.EMPTY);
+    }
+
     // convert any object as a rlp tree
-    static RLPElement readRLPTree(Object t) {
+    static RLPElement readRLPTree(Object t, RLPContext context) {
         if (t == null) return NULL;
-        if (t.getClass() == boolean.class || t instanceof Boolean) {
-            return ((Boolean) t) ? ONE : NULL;
-        }
+
         if (t instanceof RLPElement) return (RLPElement) t;
         RLPEncoder encoder = RLPUtils.getAnnotatedRLPEncoder(t.getClass());
         if (encoder != null) {
             return encoder.encode(t);
+        }
+        encoder = context.getEncoder(t.getClass());
+        if (encoder != null) {
+            return encoder.encode(t);
+        }
+        if (t.getClass() == boolean.class || t instanceof Boolean) {
+            return ((Boolean) t) ? ONE : NULL;
         }
         if (t instanceof BigInteger) return RLPItem.fromBigInteger((BigInteger) t);
         if (t instanceof byte[]) return RLPItem.fromBytes((byte[]) t);
@@ -100,7 +109,7 @@ public interface RLPElement {
         if (t.getClass().isArray()) {
             RLPList list = RLPList.createEmpty(Array.getLength(t));
             for (int i = 0; i < Array.getLength(t); i++) {
-                list.add(readRLPTree(Array.get(t, i)));
+                list.add(readRLPTree(Array.get(t, i), context));
             }
             return list;
         }
@@ -120,7 +129,7 @@ public interface RLPElement {
                 throw new RuntimeException(e);
             }
             Comparator comparator = RLPUtils.getKeyOrdering(f);
-            if(o == null) return NULL;
+            if (o == null) return NULL;
             RLPEncoder fieldEncoder = RLPUtils.getAnnotatedRLPEncoder(f);
             if (fieldEncoder != null) {
                 return fieldEncoder.encode(o);
@@ -133,7 +142,7 @@ public interface RLPElement {
                 Map m = (Map) o;
                 return RLPCodec.encodeMap(m, comparator);
             }
-            return readRLPTree(o);
+            return readRLPTree(o, context);
         }).collect(Collectors.toList()));
     }
 

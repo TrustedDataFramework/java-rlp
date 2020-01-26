@@ -12,7 +12,6 @@ import java.util.concurrent.ConcurrentMap;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static org.tdf.rlp.Container.fromField;
 import static org.tdf.rlp.RLPConstants.*;
 import static org.tdf.rlp.RLPElement.readRLPTree;
 
@@ -22,12 +21,23 @@ public final class RLPCodec {
         return decode(element, clazz);
     }
 
-    public static <T> T decode(RLPElement element, Class<T> clazz) {
+    public static <T> T decode(byte[] data, Class<T> clazz, RLPContext context) {
+        RLPElement element = RLPElement.fromEncoded(data);
+        return decode(element, clazz, context);
+    }
+
+    public static <T> T decode(RLPElement element, Class<T> clazz){
+        return decode(element, clazz, RLPContext.EMPTY);
+    }
+
+    public static <T> T decode(RLPElement element, Class<T> clazz, RLPContext context) {
         if (clazz == RLPElement.class) return (T) element;
         if (clazz == RLPList.class) return (T) element.asRLPList();
         if (clazz == RLPItem.class) return (T) element.asRLPItem();
-        RLPDecoder decoder = RLPUtils.getAnnotatedRLPDecoder(clazz);
-        if (decoder != null) return (T) decoder.decode(element);
+        RLPDecoder<T> decoder = RLPUtils.getAnnotatedRLPDecoder(clazz);
+        if (decoder != null) return decoder.decode(element);
+        decoder = context.getDecoder(clazz);
+        if(decoder != null) return decoder.decode(element);
         if (clazz == boolean.class || clazz == Boolean.class) return (T) Boolean.valueOf(element.asBoolean());
         if (clazz == Byte.class || clazz == byte.class) {
             return (T) Byte.valueOf(element.asByte());
@@ -138,6 +148,10 @@ public final class RLPCodec {
 
     public static String decodeString(byte[] encoded) {
         return RLPElement.fromEncoded(encoded).asString();
+    }
+
+    public static byte[] encode(Object o, RLPContext context) {
+        return readRLPTree(o, context).getEncoded();
     }
 
     public static byte[] encode(Object o) {
