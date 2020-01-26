@@ -59,6 +59,10 @@ public interface RLPElement {
         return RLPCodec.decode(this, clazz);
     }
 
+    default <T> T as(Class<T> clazz, RLPContext context) {
+        return RLPCodec.decode(this, clazz, context);
+    }
+
     static RLPElement fromEncoded(byte[] data) {
         return fromEncoded(data, true);
     }
