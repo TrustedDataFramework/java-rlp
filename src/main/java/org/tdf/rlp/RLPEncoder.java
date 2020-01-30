@@ -1,7 +1,14 @@
 package org.tdf.rlp;
 
+import lombok.NonNull;
+
 public interface RLPEncoder<T> {
-    RLPElement encode(T o);
+    /**
+     *
+     * @param o non-null object
+     * @return encoded result
+     */
+    RLPElement encode(@NonNull T o);
 
     class None implements RLPEncoder<Object> {
         @Override

@@ -1,5 +1,8 @@
 package org.tdf.rlp;
 
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.apache.commons.codec.binary.Hex;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -13,6 +16,8 @@ import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Paths;
 import java.security.SecureRandom;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -1684,5 +1689,37 @@ public class RLPTest {
         Dummmy4 dummmy4 = RLPCodec.decode(RLPList.fromElements(Arrays.asList(NULL)).getEncoded(), Dummmy4.class);
         assert dummmy4.dum != null;
         assert dummmy4.dum.size() == 0;
+    }
+
+    @Test
+    public void testContext(){
+        RLPContext context = RLPContext
+                .newInstance()
+                .withDecoder(LocalDate.class, new LocalDateDecoder())
+                .withEncoder(LocalDate.class, new LocalDateEncoder());
+        RLPMapper mapper = new RLPMapper().withContext(context);
+        LocalDate now = LocalDate.now();
+        RLPElement element = mapper.readRLPTree(now);
+        for(long l : element.as(long[].class)){
+            System.out.println(l);
+        }
+        assert now.equals(mapper.decode(element, LocalDate.class));
+
+        User u = new User();
+        element = mapper.readRLPTree(u);
+        User decoded = mapper.decode(element, User.class);
+        assert decoded.birthDay == null;
+
+        u.birthDay = LocalDate.now();
+        byte[] encoded = mapper.encode(u);
+        decoded = mapper.decode(encoded, User.class);
+        System.out.println(decoded.birthDay.format(DateTimeFormatter.ISO_DATE));
+    }
+
+    @Data
+    @AllArgsConstructor
+    @NoArgsConstructor
+    public static class User{
+        private LocalDate birthDay;
     }
 }

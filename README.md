@@ -222,6 +222,55 @@ public class Main{
 
 ```
 
+- Add global context to avoid duplicated @RLPEncoding and @RLPDecoding
+
+```java
+public class Main{
+    public static class LocalDateDecoder implements RLPDecoder<LocalDate> {
+        @Override
+        public LocalDate decode(RLPElement rlpElement) {
+            if(rlpElement.isNull()) return null;
+            int[] data = rlpElement.as(int[].class);
+            return LocalDate.of(data[0], data[1], data[2]);
+        }
+    }
+
+    public class LocalDateEncoder implements RLPEncoder<LocalDate> {
+        @Override
+        public RLPElement encode(LocalDate localDate) {
+            return RLPElement.readRLPTree(
+                    new int[]{localDate.getYear(), localDate.getMonthValue(), localDate.getDayOfMonth()}
+            );
+        }
+    }
+
+    @Data
+    @AllArgsConstructor
+    @NoArgsConstructor
+    public static class User{
+        private LocalDate birthDay;
+    }
+
+    public static void main(String[] args){
+        RLPContext context = RLPContext
+                .newInstance()
+                .withDecoder(LocalDate.class, new LocalDateDecoder())
+                .withEncoder(LocalDate.class, new LocalDateEncoder());
+        RLPMapper mapper = new RLPMapper().withContext(context);
+        User u = new User();
+        element = mapper.readRLPTree(u);
+        User decoded = mapper.decode(element, User.class);
+        assert decoded.birthDay == null;
+
+        u.birthDay = LocalDate.now();
+        byte[] encoded = mapper.encode(u);
+        decoded = mapper.decode(encoded, User.class);
+        System.out.println(decoded.birthDay.format(DateTimeFormatter.ISO_DATE));    
+    }
+
+}
+```
+
 ## Benchmark 
 
 - see RLPTest.performanceDecode for benchmark
