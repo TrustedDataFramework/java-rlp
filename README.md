@@ -22,7 +22,7 @@ Fast ethereum rlp encode, decode and object mapping in java.
 - ```java.util.TreeSet``` is recommended implementation of ```java.util.Set``` since keys in TreeSet are ordered.
 - Besides ```java.util.TreeMap```, the ordering of key-value pairs could be specified by ```@RLPEncoding.keyOrdering()``` when encoding.
 - Besides ```java.util.TreeSet```, the ordering of element of ```java.util.Set``` could be specified by ```@RLPEncoding.keyOrdering()``` when encoding.
-- If the ordering of key-value pairs is absent, the encoding of the ```java.util.Map``` may not predictable, encoding of ```java.util.Set``` is similar.
+- If the ordering of key-value pairs is absent, the encoding of the ```java.util.Map``` may not be predictable, encoding of ```java.util.Set``` is similar.
 
 ## Examples
 
@@ -137,7 +137,7 @@ public class Main{
 }
 ```
 
-- Tree-like type encode & deocde without wrapper class.
+- Tree-like type encode & decode without wrapper class.
 
 ```java
 public class Main{
