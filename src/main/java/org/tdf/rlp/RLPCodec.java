@@ -75,7 +75,7 @@ public final class RLPCodec {
         if (
                 RLPUtils.isContainer(clazz)
         ) {
-            return (T) decodeContainer(element, Container.fromClass(clazz));
+            return (T) decodeContainer(element, Container.fromClass(clazz), context);
         }
         T o = RLPUtils.newInstance(clazz);
         List<Field> fields = RLPUtils.getRLPFields(clazz);
@@ -97,7 +97,7 @@ public final class RLPCodec {
             }
 
             try {
-                f.set(o, decodeContainer(el, container));
+                f.set(o, decodeContainer(el, container, context));
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
@@ -246,39 +246,47 @@ public final class RLPCodec {
         return data;
     }
 
-    static RLPElement encodeCollection(Collection col, Comparator contentOrdering) {
+    static RLPElement encodeCollection(Collection col, Comparator contentOrdering, RLPContext context) {
         Stream<Object> s = contentOrdering == null ? col.stream() : col.stream().sorted(contentOrdering);
-        return new RLPList(s.map(RLPElement::readRLPTree)
+        return new RLPList(s.map(x -> RLPElement.readRLPTree(x, context))
                 .collect(Collectors.toList()));
     }
 
-    static RLPElement encodeMap(Map m, Comparator keyOrdering) {
+    static RLPElement encodeMap(Map m, Comparator keyOrdering, RLPContext context) {
         RLPList list = RLPList.createEmpty(m.size() * 2);
         Stream<Map.Entry> entires = m.entrySet().stream();
         if (keyOrdering != null) entires =
                 entires.sorted((x, y) -> keyOrdering.compare(x.getKey(), y.getKey()));
         entires.forEach(x -> {
-            list.add(readRLPTree(x.getKey()));
-            list.add(readRLPTree(x.getValue()));
+            list.add(readRLPTree(x.getKey(), context));
+            list.add(readRLPTree(x.getValue(), context));
         });
         return list;
     }
 
     public static Object decodeContainer(byte[] encoded, Container container) {
-        return decodeContainer(RLPElement.fromEncoded(encoded), container);
+        return decodeContainer(encoded, container, RLPContext.EMPTY);
     }
 
-    public static Object decodeContainer(RLPElement element, Container container) {
+    public static Object decodeContainer(byte[] encoded, Container container, RLPContext context) {
+        return decodeContainer(RLPElement.fromEncoded(encoded), container, context);
+    }
+
+    public static Object decodeContainer(RLPElement element, Container container){
+        return decodeContainer(element, container, RLPContext.EMPTY);
+    }
+
+    public static Object decodeContainer(RLPElement element, Container container, RLPContext context) {
         if (container == null) return element;
         switch (container.getType()) {
             case RAW:
-                return decode(element, container.asRaw());
+                return decode(element, container.asRaw(), context);
             case COLLECTION: {
                 CollectionContainer collectionContainer = container.asCollection();
                 Collection res = (Collection) RLPUtils.newInstance(getDefaultImpl(collectionContainer.collectionType));
                 if (element.isNull()) return res;
                 for (int i = 0; i < element.size(); i++) {
-                    res.add(decodeContainer(element.get(i), collectionContainer.contentType));
+                    res.add(decodeContainer(element.get(i), collectionContainer.contentType, context));
                 }
                 return res;
             }
@@ -288,8 +296,8 @@ public final class RLPCodec {
                 if (element.isNull()) return res;
                 for (int i = 0; i < element.size(); i += 2) {
                     res.put(
-                            decodeContainer(element.get(i), mapContainer.keyType),
-                            decodeContainer(element.get(i + 1), mapContainer.valueType)
+                            decodeContainer(element.get(i), mapContainer.keyType, context),
+                            decodeContainer(element.get(i + 1), mapContainer.valueType, context)
                     );
                 }
                 return res;

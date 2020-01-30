@@ -64,7 +64,7 @@ public interface RLPElement {
             return RLPItem.fromLong((long) t);
         }
         if (t instanceof Map) {
-            return RLPCodec.encodeMap((Map) t, null);
+            return RLPCodec.encodeMap((Map) t, null, context);
         }
         if (t.getClass().isArray()) {
             RLPList list = RLPList.createEmpty(Array.getLength(t));
@@ -74,7 +74,7 @@ public interface RLPElement {
             return list;
         }
         if (t instanceof Collection) {
-            return RLPCodec.encodeCollection((Collection) t, null);
+            return RLPCodec.encodeCollection((Collection) t, null, context);
         }
         // peek fields reflection
         List<Field> fields = RLPUtils.getRLPFields(t.getClass());
@@ -95,12 +95,12 @@ public interface RLPElement {
                 return fieldEncoder.encode(o);
             }
             if (Set.class.isAssignableFrom(f.getType())) {
-                return RLPCodec.encodeCollection((Collection) o, comparator);
+                return RLPCodec.encodeCollection((Collection) o, comparator, context);
             }
             comparator = RLPUtils.getKeyOrdering(f);
             if (Map.class.isAssignableFrom(f.getType())) {
                 Map m = (Map) o;
-                return RLPCodec.encodeMap(m, comparator);
+                return RLPCodec.encodeMap(m, comparator, context);
             }
             return readRLPTree(o, context);
         }).collect(Collectors.toList()));
