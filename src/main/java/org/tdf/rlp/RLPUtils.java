@@ -60,8 +60,11 @@ final class RLPUtils {
                 .collect(Collectors.toList());
         if (annotated.size() == 0) {
             Map<Class, List<Field>> tmp = new HashMap<>(FIELDS);
-            notIgnored.forEach(f -> f.setAccessible(true));
-            tmp.put(clazz, notIgnored);
+            tmp.put(
+                    clazz, notIgnored.stream().filter(x -> !Modifier.isTransient(x.getModifiers()))
+                    .peek(x -> x.setAccessible(true))
+                    .collect(Collectors.toList())
+            );
             FIELDS = tmp;
             return notIgnored;
         }
