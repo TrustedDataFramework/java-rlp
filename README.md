@@ -14,6 +14,7 @@ Fast ethereum rlp encode, decode and object mapping in java.
 - For boolean, ```true``` will be encoded as ```1``` while ```false``` will be encoded as ```0```
 - ```null``` values of Boolean, Byte, Short, Integer, Long and BigInteger will be encoded as ```0```
 - ```null``` byte array ```byte[] bytes = null``` will be encoded as empty byte array ```byte[] bytes = new byte[0]```
+- transient field will be ignored by default
 
 ## Notes on java.util.Collection and java.util.Map
 
