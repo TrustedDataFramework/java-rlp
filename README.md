@@ -1,3 +1,5 @@
+![Java CI](https://github.com/TrustedDataFramework/java-rlp/workflows/Java%20CI/badge.svg)
+
 # java-rlp
 
 Fast ethereum rlp encode, decode and object mapping in java.
