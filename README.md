@@ -274,6 +274,24 @@ public class Main{
 }
 ```
 
+- Encode & Decode containers
+
+```java
+public class Main {
+    public static interface SomeMap extends Map<String, String>{
+
+    }
+
+    public static final Container CONTAINER = Container.fromType(SomeMap.class.getGenericInterfaces()[0]);
+
+
+    public static void main(String[] args){
+        byte[] bytes = new byte[0];
+        Map<String, String> m  = (Map<String, String>) RLPCodec.decodeContainer(bytes, CONTAINER);
+    }
+}
+```
+
 ## Benchmark 
 
 - see RLPTest.performanceDecode for benchmark
